@@ -174,6 +174,7 @@ print(lastDate)
 # Create a new dataframe with only common columns
 # df = pandas.DataFrame(data=None, index=None, columns=None, dtype=None, copy=None)
 df = pandas.concat([dfBTC, dfXAU])
+df["date"] = pandas.to_datetime(df["date"])
 df = df[df["date"] >= firstDate]
 df = df[df["date"] <= lastDate]
 df = df.dropna()
@@ -189,17 +190,19 @@ plt.plot(
     xau_data["date"],
     xau_data["open"],
     marker="o",
+    linestyle="-",
     linewidth=2,
-    markersize=4,
+    markersize=2,
     label="XAU",
-    color="yellow",
+    color="gold",
 )
 plt.plot(
     btc_data["date"],
     btc_data["open"],
     marker="s",
-    linewidth=0,
-    markersize=4,
+    linestyle="--",
+    linewidth=2,
+    markersize=2,
     label="BTC",
     color="blue",
 )
