@@ -1,7 +1,5 @@
-import kagglehub
-from kagglehub import KaggleDatasetAdapter
-import pandas
 import matplotlib.pyplot as plt
+from dataset import Dataset
 
 
 # Set the path to the file you'd like to load from Kaggle's dataset
@@ -111,84 +109,27 @@ files = [
     "ZRX.csv",
 ]
 
-for i in range(len(files)):
-    if files[i] == "BTC.csv":
-        break
-
-# Download latest cryptocurrency exchange rates
-file_path = files[i]
-dfBTC = kagglehub.load_dataset(
-    KaggleDatasetAdapter.PANDAS,
-    "svaningelgem/crypto-currencies-daily-prices",
-    file_path,
-    # Provide any additional arguments
-    # See the documenation for more information:
-    # https://github.com/Kaggle/kagglehub/blob/main/README.md#kaggledatasetadapterpandas
+data = Dataset(columns={"ticker", "date", "open", "high", "low", "close"})
+data.setDateFormat("yyyy-mm-dd")
+for file in files:
+    data.addDataset(repo="svaningelgem/crypto-currencies-daily-prices", file=file)
+data.addDataset(
+    repo="isaaclopgu/gold-historical-data-daily-updated",
+    file="Gold_Spot_historical_data.csv",
+    ticker="XAU",
 )
+data.exportDataset("csv")
+# data.exportDataset("parquet")
+# data.exportDataset("excel")
 
-# Download latest gold exchange rates
-file_path = "Gold_Spot_historical_data.csv"
-dfXAU = kagglehub.load_dataset(
-    KaggleDatasetAdapter.PANDAS,
-    "isaaclopgu/gold-historical-data-daily-updated",
-    file_path,
-)
-
-
-# We wants columns to be: "ticker", "date" (yyyy-mm-dd), "open", "high", "low", "close"
-dfXAU["date"] = dfXAU["Date"].astype(str).str[:10]
-dfXAU["ticker"] = "XAU"
-dfXAU = dfXAU.rename(
-    columns={"Open": "open", "High": "high", "Low": "low", "Close": "close"}
-)
-dfXAU = dfXAU.drop(columns=["Date", "Volume", "name"])
-
-
-# Sort values by dates
-dfXAU = dfXAU.sort_values(by="date")
-dfBTC = dfBTC.sort_values(by="date")
-
-
-# Get the first common date
-firstDateGold = dfXAU["date"].iloc[0]
-firstDateCrypto = dfBTC["date"].iloc[0]
-
-if firstDateGold > firstDateCrypto:
-    firstDate = firstDateGold
-else:
-    firstDate = firstDateCrypto
-print(firstDate)
-
-
-# Get the last common date
-lastDateGold = dfXAU["date"].iloc[-1]
-lastDateCrypto = dfBTC["date"].iloc[-1]
-
-if lastDateGold < lastDateCrypto:
-    lastDate = lastDateGold
-else:
-    lastDate = lastDateCrypto
-print(lastDate)
-
-
-# Create a new dataframe with only common columns
-# df = pandas.DataFrame(data=None, index=None, columns=None, dtype=None, copy=None)
-df = pandas.concat([dfBTC, dfXAU])
-df["date"] = pandas.to_datetime(df["date"])
-df = df[df["date"] >= firstDate]
-df = df[df["date"] <= lastDate]
-df = df.dropna()
-df = df.sort_values(by="date")
-print(df.head)
+print(data.df.head)
 
 
 # Draw values on a graph
-xau_data = df[df["ticker"] == "XAU"]
-btc_data = df[df["ticker"] == "BTC"]
 plt.figure(figsize=(12, 6))
 plt.plot(
-    xau_data["date"],
-    xau_data["open"],
+    data.getTicker("XAU")["date"],
+    data.getTicker("XAU")["open"],
     marker="o",
     linestyle="-",
     linewidth=2,
@@ -197,8 +138,8 @@ plt.plot(
     color="gold",
 )
 plt.plot(
-    btc_data["date"],
-    btc_data["open"],
+    data.getTicker("BTC")["date"],
+    data.getTicker("BTC")["open"],
     marker="s",
     linestyle="--",
     linewidth=2,
