@@ -7,8 +7,9 @@ import pandas
 
 
 class Dataset:
-    def __init__(self, columns=None):
+    def __init__(self, columns=None, trim=False):
         self.columns = columns
+        self.trim = trim
         self.dateFormat = None
         # self.df = pandas.DataFrame(data=None, index=None, columns=None, dtype=None, copy=None)
         self.df = None
@@ -20,6 +21,42 @@ class Dataset:
 
     def getDateFormat(self):
         return self.dateFormat
+
+    def cleanColumns(self, df, ticker):
+        referenceLower = {col.lower() for col in self.columns}
+
+        def shouldDrop(col):
+            return col.lower() not in referenceLower
+
+        def shouldRename(col):
+            return col.lower() != col and col.lower() in referenceLower
+
+        drop = [col for col in df.columns if shouldDrop(col)]
+        rename = {col: col.lower() for col in df.columns if shouldRename(col)}
+
+        df = df.drop(columns=drop).rename(columns=rename)
+
+        df["date"] = df["date"].astype(str).str[:10]
+        df["date"] = pandas.to_datetime(df["date"])
+        if ticker is not None:
+            df["ticker"] = ticker
+
+        return df
+
+    def updateDateRange(self, df):
+        dfBegin = df["date"].iloc[0]
+        dfEnd = df["date"].iloc[-1]
+
+        def updateBound(current, new, isLowerBound):
+            if current == -1:
+                return new
+            if (isLowerBound and new > current) or (not isLowerBound and new < current):
+                return new
+            else:
+                return current
+
+        self.begin = updateBound(self.begin, dfBegin, isLowerBound=True)
+        self.end = updateBound(self.end, dfEnd, isLowerBound=False)
 
     def addDataset(self, repo, file, ticker=None):
         # Download latest dataset from Kaggle
@@ -33,50 +70,13 @@ class Dataset:
         )
 
         # TODO: take care if self.columns == None
-        columns = dfTmp.columns
-        rename = {}
-        drop = []
-        for column in columns:
-            lower = column.lower()
-            delete = True
-            for inCols in self.columns:
-                if lower == inCols:
-                    delete = False
-            if delete:
-                drop.append(column)
-            elif lower != column:
-                rename[column] = lower
-
-        # dfTmp = dfTmp.rename(
-        #    columns={
-        #        "Date": "date",
-        #        "Open": "open",
-        #        "High": "high",
-        #        "Low": "low",
-        #        "Close": "close",
-        #    }
-        # )
-        dfTmp = dfTmp.drop(columns=drop)
-        dfTmp = dfTmp.rename(columns=rename)
-        dfTmp["date"] = dfTmp["date"].astype(str).str[:10]
-        dfTmp["date"] = pandas.to_datetime(dfTmp["date"])
-        if ticker is not None:
-            dfTmp["ticker"] = ticker
+        dfTmp = self.cleanColumns(dfTmp, ticker)
 
         # Sort values by dates
         dfTmp = dfTmp.sort_values(by="date")
 
         # Limit to a common range of dates
-        dfBegin = dfTmp["date"].iloc[0]
-        dfEnd = dfTmp["date"].iloc[-1]
-        if self.begin == -1:
-            self.begin = dfBegin
-        elif dfBegin > self.begin:
-            self.begin = dfBegin
-        if self.end == -1:
-            self.end = dfEnd
-        elif dfEnd < self.end:
-            self.end = dfEnd
+        self.updateDateRange(dfTmp)
 
         if self.df is None:
             self.df = dfTmp
@@ -84,10 +84,11 @@ class Dataset:
             self.df = pandas.concat([self.df, dfTmp])
 
         # Drop values out of date range
-        self.df = self.df[
-            (self.df["date"] >= self.begin) & (self.df["date"] <= self.end)
-        ]
-        self.df = self.df.dropna()
+        if self.trim:
+            self.df = self.df[
+                (self.df["date"] >= self.begin) & (self.df["date"] <= self.end)
+            ]
+            self.df = self.df.dropna()
 
     def getTicker(self, ticker=""):
         if ticker == "":

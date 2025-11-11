@@ -109,7 +109,10 @@ files = [
     "ZRX.csv",
 ]
 
-data = Dataset(columns={"ticker", "date", "open", "high", "low", "close"})
+# TODO: remove this overload of files (gaining time in DEBUG mode)
+files = ["BTC.csv"]
+
+data = Dataset(columns={"ticker", "date", "open", "high", "low", "close"}, trim=False)
 data.setDateFormat("yyyy-mm-dd")
 for file in files:
     data.addDataset(repo="svaningelgem/crypto-currencies-daily-prices", file=file)
