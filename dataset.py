@@ -1,9 +1,11 @@
 #####################################################
 ##### Class ordering all datasets in one usable #####
 #####################################################
+# python3 -m pip install kagglehub yfinance pandas
 import kagglehub
 from kagglehub import KaggleDatasetAdapter
 import pandas
+# import yfinance
 
 
 class Dataset:
@@ -58,9 +60,15 @@ class Dataset:
         self.begin = updateBound(self.begin, dfBegin, isLowerBound=True)
         self.end = updateBound(self.end, dfEnd, isLowerBound=False)
 
-    def addDataset(self, repo, file, ticker=None):
+    def importFromYahoo(self, ticker, start=-1, end=-1):
+        if start == -1 or end == -1:
+            return yfinance.download(ticker, period="max")
+        else:
+            return yfinance.download(ticker, start=start, end=end)
+
+    def importFromKaggle(self, repo, file):
         # Download latest dataset from Kaggle
-        dfTmp = kagglehub.load_dataset(
+        return kagglehub.load_dataset(
             KaggleDatasetAdapter.PANDAS,
             repo,
             file,
@@ -68,6 +76,21 @@ class Dataset:
             # See the documenation for more information:
             # https://github.com/Kaggle/kagglehub/blob/main/README.md#kaggledatasetadapterpandas
         )
+
+    def importFromCsv(self):
+        pass
+
+    def addDataset(self, source, repo, file, ticker=None):
+        if source == "Kaggle":
+            # Download latest dataset from Kaggle
+            dfTmp = self.importFromKaggle(repo, file)
+        elif source == "Yahoo":
+            dfTmp = self.importFromYahoo(file, self.begin, self.end)
+        elif source == "csv":
+            pass
+        else:
+            # TODO: raise an exception
+            pass
 
         # TODO: take care if self.columns == None
         dfTmp = self.cleanColumns(dfTmp, ticker)

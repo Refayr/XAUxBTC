@@ -115,8 +115,11 @@ files = ["BTC.csv"]
 data = Dataset(columns={"ticker", "date", "open", "high", "low", "close"}, trim=False)
 data.setDateFormat("yyyy-mm-dd")
 for file in files:
-    data.addDataset(repo="svaningelgem/crypto-currencies-daily-prices", file=file)
+    data.addDataset(
+        source="Kaggle", repo="svaningelgem/crypto-currencies-daily-prices", file=file
+    )
 data.addDataset(
+    source="Kaggle",
     repo="isaaclopgu/gold-historical-data-daily-updated",
     file="Gold_Spot_historical_data.csv",
     ticker="XAU",
