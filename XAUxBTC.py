@@ -10,11 +10,11 @@ files = [
     "ADA.csv",
     "ALGO.csv",
     "AMP.csv",
-    "APE.csv",
-    "AR.csv",
+    "APE.csv",#start 2020-10-01
+    "AR.csv",#start 2024-02-07
     "ATOM.csv",
-    "AVAX.csv",
-    "AXS.csv",
+    "AVAX.csv",#2020-07-13
+    "AXS.csv",#2020-08-31
     "BAT.csv",
     "BCH.csv",
     "BNB.csv",
