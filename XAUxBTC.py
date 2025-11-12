@@ -130,9 +130,12 @@ print(data.df.head)
 
 # Draw values on a graph
 plt.figure(figsize=(12, 6))
+
+column = "open"
+plt.subplot(221)
 plt.plot(
     data.getTicker("XAU")["date"],
-    data.getTicker("XAU")["open"],
+    data.getTicker("XAU")[column],
     marker="o",
     linestyle="-",
     linewidth=2,
@@ -142,7 +145,7 @@ plt.plot(
 )
 plt.plot(
     data.getTicker("BTC")["date"],
-    data.getTicker("BTC")["open"],
+    data.getTicker("BTC")[column],
     marker="s",
     linestyle="--",
     linewidth=2,
@@ -150,10 +153,103 @@ plt.plot(
     label="BTC",
     color="blue",
 )
-plt.xlabel("Date", fontsize=12)
-plt.ylabel("Open prices", fontsize=12)
-plt.title("Gold / Bitcoin comparison", fontsize=14, fontweight="bold")
+plt.xlabel("dates", fontsize=12)
+plt.ylabel(f"{column} prices", fontsize=12)
+plt.title(
+    f"Gold / Bitcoin comparison ({column} prices)", fontsize=14, fontweight="bold"
+)
 plt.legend(fontsize=11)
 plt.grid(True, alpha=0.3)
+
+column = "close"
+plt.subplot(222)
+plt.plot(
+    data.getTicker("XAU")["date"],
+    data.getTicker("XAU")[column],
+    marker="o",
+    linestyle="-",
+    linewidth=2,
+    markersize=2,
+    label="XAU",
+    color="gold",
+)
+plt.plot(
+    data.getTicker("BTC")["date"],
+    data.getTicker("BTC")[column],
+    marker="s",
+    linestyle="--",
+    linewidth=2,
+    markersize=2,
+    label="BTC",
+    color="blue",
+)
+plt.xlabel("dates", fontsize=12)
+plt.ylabel(f"{column} prices", fontsize=12)
+plt.title(
+    f"Gold / Bitcoin comparison ({column} prices)", fontsize=14, fontweight="bold"
+)
+plt.legend(fontsize=11)
+plt.grid(True, alpha=0.3)
+
+column = "low"
+plt.subplot(223)
+plt.plot(
+    data.getTicker("XAU")["date"],
+    data.getTicker("XAU")[column],
+    marker="o",
+    linestyle="-",
+    linewidth=2,
+    markersize=2,
+    label="XAU",
+    color="gold",
+)
+plt.plot(
+    data.getTicker("BTC")["date"],
+    data.getTicker("BTC")[column],
+    marker="s",
+    linestyle="--",
+    linewidth=2,
+    markersize=2,
+    label="BTC",
+    color="blue",
+)
+plt.xlabel("dates", fontsize=12)
+plt.ylabel(f"{column} prices", fontsize=12)
+plt.title(
+    f"Gold / Bitcoin comparison ({column} prices)", fontsize=14, fontweight="bold"
+)
+plt.legend(fontsize=11)
+plt.grid(True, alpha=0.3)
+
+column = "high"
+plt.subplot(224)
+plt.plot(
+    data.getTicker("XAU")["date"],
+    data.getTicker("XAU")[column],
+    marker="o",
+    linestyle="-",
+    linewidth=2,
+    markersize=2,
+    label="XAU",
+    color="gold",
+)
+plt.plot(
+    data.getTicker("BTC")["date"],
+    data.getTicker("BTC")[column],
+    marker="s",
+    linestyle="--",
+    linewidth=2,
+    markersize=2,
+    label="BTC",
+    color="blue",
+)
+plt.xlabel("dates", fontsize=12)
+plt.ylabel(f"{column} prices", fontsize=12)
+plt.title(
+    f"Gold / Bitcoin comparison ({column} prices)", fontsize=14, fontweight="bold"
+)
+plt.legend(fontsize=11)
+plt.grid(True, alpha=0.3)
+
 plt.tight_layout()
 plt.show()
