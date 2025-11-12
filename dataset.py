@@ -5,7 +5,15 @@
 import kagglehub
 from kagglehub import KaggleDatasetAdapter
 import pandas
+
 # import yfinance
+import enum
+
+
+class DatasetProvider(enum.Enum):
+    CSV = 1
+    KAGGLE = 1 << 1
+    YAHOO = 1 << 2
 
 
 class Dataset:
@@ -33,7 +41,8 @@ class Dataset:
         def shouldRename(col):
             return col.lower() != col and col.lower() in referenceLower
 
-        drop = [col for col in df.columns if shouldDrop(col)]
+        # drop = [col for col in df.columns if shouldDrop(col)]
+        drop = filter(lambda x: x.lower() not in referenceLower, df.columns)
         rename = {col: col.lower() for col in df.columns if shouldRename(col)}
 
         df = df.drop(columns=drop).rename(columns=rename)
@@ -77,20 +86,24 @@ class Dataset:
             # https://github.com/Kaggle/kagglehub/blob/main/README.md#kaggledatasetadapterpandas
         )
 
-    def importFromCsv(self):
+    def importFromCsv(self, file):
+        # TODO: import file from hard drive
         pass
 
     def addDataset(self, source, repo, file, ticker=None):
-        if source == "Kaggle":
-            # Download latest dataset from Kaggle
-            dfTmp = self.importFromKaggle(repo, file)
-        elif source == "Yahoo":
-            dfTmp = self.importFromYahoo(file, self.begin, self.end)
-        elif source == "csv":
-            pass
-        else:
-            # TODO: raise an exception
-            pass
+        match source:
+            case DatasetProvider.KAGGLE:
+                # Download latest dataset from Kaggle
+                dfTmp = self.importFromKaggle(repo, file)
+            case DatasetProvider.YAHOO:
+                # Download latest dataset from Yahoo Finance
+                dfTmp = self.importFromYahoo(file, self.begin, self.end)
+            case DatasetProvider.CSV:
+                # Use a local .csv file
+                dfTmp = self.importFromCsv(file)
+            case _:
+                # TODO: raise an exception
+                pass
 
         # TODO: take care if self.columns == None
         dfTmp = self.cleanColumns(dfTmp, ticker)

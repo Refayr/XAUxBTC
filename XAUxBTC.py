@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from dataset import Dataset
+from dataset import DatasetProvider
 
 
 # Set the path to the file you'd like to load from Kaggle's dataset
@@ -116,10 +117,12 @@ data = Dataset(columns={"ticker", "date", "open", "high", "low", "close"}, trim=
 data.setDateFormat("yyyy-mm-dd")
 for file in files:
     data.addDataset(
-        source="Kaggle", repo="svaningelgem/crypto-currencies-daily-prices", file=file
+        source=DatasetProvider.KAGGLE,
+        repo="svaningelgem/crypto-currencies-daily-prices",
+        file=file,
     )
 data.addDataset(
-    source="Kaggle",
+    source=DatasetProvider.KAGGLE,
     repo="isaaclopgu/gold-historical-data-daily-updated",
     file="Gold_Spot_historical_data.csv",
     ticker="XAU",
@@ -134,125 +137,38 @@ print(data.df.head)
 # Draw values on a graph
 plt.figure(figsize=(12, 6))
 
-column = "open"
-plt.subplot(221)
-plt.plot(
-    data.getTicker("XAU")["date"],
-    data.getTicker("XAU")[column],
-    marker="o",
-    linestyle="-",
-    linewidth=2,
-    markersize=2,
-    label="XAU",
-    color="gold",
-)
-plt.plot(
-    data.getTicker("BTC")["date"],
-    data.getTicker("BTC")[column],
-    marker="s",
-    linestyle="--",
-    linewidth=2,
-    markersize=2,
-    label="BTC",
-    color="blue",
-)
-plt.xlabel("dates", fontsize=12)
-plt.ylabel(f"{column} prices", fontsize=12)
-plt.title(
-    f"Gold / Bitcoin comparison ({column} prices)", fontsize=14, fontweight="bold"
-)
-plt.legend(fontsize=11)
-plt.grid(True, alpha=0.3)
-
-column = "close"
-plt.subplot(222)
-plt.plot(
-    data.getTicker("XAU")["date"],
-    data.getTicker("XAU")[column],
-    marker="o",
-    linestyle="-",
-    linewidth=2,
-    markersize=2,
-    label="XAU",
-    color="gold",
-)
-plt.plot(
-    data.getTicker("BTC")["date"],
-    data.getTicker("BTC")[column],
-    marker="s",
-    linestyle="--",
-    linewidth=2,
-    markersize=2,
-    label="BTC",
-    color="blue",
-)
-plt.xlabel("dates", fontsize=12)
-plt.ylabel(f"{column} prices", fontsize=12)
-plt.title(
-    f"Gold / Bitcoin comparison ({column} prices)", fontsize=14, fontweight="bold"
-)
-plt.legend(fontsize=11)
-plt.grid(True, alpha=0.3)
-
-column = "low"
-plt.subplot(223)
-plt.plot(
-    data.getTicker("XAU")["date"],
-    data.getTicker("XAU")[column],
-    marker="o",
-    linestyle="-",
-    linewidth=2,
-    markersize=2,
-    label="XAU",
-    color="gold",
-)
-plt.plot(
-    data.getTicker("BTC")["date"],
-    data.getTicker("BTC")[column],
-    marker="s",
-    linestyle="--",
-    linewidth=2,
-    markersize=2,
-    label="BTC",
-    color="blue",
-)
-plt.xlabel("dates", fontsize=12)
-plt.ylabel(f"{column} prices", fontsize=12)
-plt.title(
-    f"Gold / Bitcoin comparison ({column} prices)", fontsize=14, fontweight="bold"
-)
-plt.legend(fontsize=11)
-plt.grid(True, alpha=0.3)
-
-column = "high"
-plt.subplot(224)
-plt.plot(
-    data.getTicker("XAU")["date"],
-    data.getTicker("XAU")[column],
-    marker="o",
-    linestyle="-",
-    linewidth=2,
-    markersize=2,
-    label="XAU",
-    color="gold",
-)
-plt.plot(
-    data.getTicker("BTC")["date"],
-    data.getTicker("BTC")[column],
-    marker="s",
-    linestyle="--",
-    linewidth=2,
-    markersize=2,
-    label="BTC",
-    color="blue",
-)
-plt.xlabel("dates", fontsize=12)
-plt.ylabel(f"{column} prices", fontsize=12)
-plt.title(
-    f"Gold / Bitcoin comparison ({column} prices)", fontsize=14, fontweight="bold"
-)
-plt.legend(fontsize=11)
-plt.grid(True, alpha=0.3)
+nbCols = 2
+nbRows = 2
+columns = ["open", "close", "low", "high"]
+for i, column in enumerate(columns):
+    plt.subplot(nbRows * 100 + nbCols * 10 + i + 1)
+    plt.plot(
+        data.getTicker("XAU")["date"],
+        data.getTicker("XAU")[column],
+        marker="o",
+        linestyle="-",
+        linewidth=2,
+        markersize=2,
+        label="XAU",
+        color="gold",
+    )
+    plt.plot(
+        data.getTicker("BTC")["date"],
+        data.getTicker("BTC")[column],
+        marker="s",
+        linestyle="--",
+        linewidth=2,
+        markersize=2,
+        label="BTC",
+        color="blue",
+    )
+    plt.xlabel("dates", fontsize=12)
+    plt.ylabel(f"{column} prices", fontsize=12)
+    plt.title(
+        f"Gold / Bitcoin comparison ({column} prices)", fontsize=14, fontweight="bold"
+    )
+    plt.legend(fontsize=11)
+    plt.grid(True, alpha=0.3)
 
 plt.tight_layout()
 plt.show()
