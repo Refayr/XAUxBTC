@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 
 
-ticker_list=['BTC-USD','GC=F','ETH-USD','USDT-USD','XPR-USD']
+ticker_list=['BTC-USD','GC=F','ETH-USD','AAVE-USD','1INCH-USD','ADA-USD','ALGO-USD','AMP-USD','ATOM-USD','BTA-USD']
 
 frames = []
 for i in ticker_list:
@@ -24,7 +24,7 @@ for i in ticker_list:
 result = pd.concat(frames, axis=1)
 print(result.head())
 
-fig, axes = plt.subplots(3, 2, figsize=(12, 8), sharex=False)
+fig, axes = plt.subplots(4, 3, figsize=(15, 20), sharex=False)
 axes = axes.ravel()
 
 for ax, col in zip(axes, result.columns):
