@@ -69,7 +69,7 @@ class Dataset:
         self.begin = updateBound(self.begin, dfBegin, isLowerBound=True)
         self.end = updateBound(self.end, dfEnd, isLowerBound=False)
 
-    def importFromYahoo(self, ticker, start=-1, end=-1):
+    def _importFromYahoo(self, ticker, start=-1, end=-1):
         if start == -1 or end == -1:
             df = yfinance.download(ticker, period="max")
         else:
@@ -79,7 +79,7 @@ class Dataset:
 
         return df
 
-    def importFromKaggle(self, repo, file):
+    def _importFromKaggle(self, repo, file):
         # Download latest dataset from Kaggle
         return kagglehub.load_dataset(
             KaggleDatasetAdapter.PANDAS,
@@ -90,21 +90,21 @@ class Dataset:
             # https://github.com/Kaggle/kagglehub/blob/main/README.md#kaggledatasetadapterpandas
         )
 
-    def importFromCsv(self, file):
+    def _importFromCsv(self, file):
         # TODO: import file from hard drive
         pass
 
-    def addDataset(self, source, repo, file, ticker=None):
+    def addDataset(self, source, file, repo=None, ticker=None):
         match source:
             case DatasetProvider.KAGGLE:
                 # Download latest dataset from Kaggle
-                dfTmp = self.importFromKaggle(repo, file)
+                dfTmp = self._importFromKaggle(repo, file)
             case DatasetProvider.YAHOO:
                 # Download latest dataset from Yahoo Finance
-                dfTmp = self.importFromYahoo(file, self.begin, self.end)
+                dfTmp = self._importFromYahoo(file, self.begin, self.end)
             case DatasetProvider.CSV:
                 # Use a local .csv file
-                dfTmp = self.importFromCsv(file)
+                dfTmp = self._importFromCsv(file)
             case _:
                 # TODO: raise an exception
                 pass
@@ -130,6 +130,8 @@ class Dataset:
             ]
             self.df = self.df.dropna()
 
+        return self.df
+
     def getTicker(self, ticker=""):
         if ticker == "":
             return self.df
@@ -144,6 +146,40 @@ class Dataset:
                 self.df.to_excel("dataset.xlsx", sheet_name="Sheet1")
             else:
                 self.df.to_csv("dataset.csv")
+
+    # Create a new column base on the normalization of another column based on a ticker
+    def normalize(self, column):
+        normColumn = column + "Normalized"
+        stats = self.df.groupby("ticker")[column].agg(["mean", "std"])
+
+        def normalizeGroup(group):
+            ticker = group.name
+            mean = stats.loc[ticker, "mean"]
+            std = stats.loc[ticker, "std"]
+            if std != 0:
+                return (group[column] - mean) / std
+            else:
+                return pandas.NA
+
+        self.df[normColumn] = self.df.groupby("ticker")[column].transform(
+            lambda x: (x - stats.loc[x.name, "mean"]) / stats.loc[x.name, "std"]
+            if stats.loc[x.name, "std"] != 0
+            else pandas.NA
+        )
+
+        # tickers = self.df["ticker"].unique()
+
+        # for ticker in tickers:
+        #    mask = self.df["ticker"] == ticker
+        #    dfTmp = self.df[mask][column].dropna()
+        #    if len(dfTmp) > 0:
+        #        mean = dfTmp.mean()
+        #        std = dfTmp.std()
+        #        self.df.loc[mask, normColumn] = (self.df.loc[mask, column] - mean) / std
+        #    else:
+        #        self.df.loc[mask, normColumn] = pandas.NA
+
+        return self.df
 
     def __getitem__(self, index):
         return self.df[index]

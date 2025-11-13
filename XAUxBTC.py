@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import seaborn
 from dataset import Dataset
 from dataset import DatasetProvider
 
@@ -132,13 +133,12 @@ match provider:
             ticker="XAU",
         )
     case "Yahoo":
-        data.addDataset(
-            source=DatasetProvider.YAHOO, repo=None, file="GC=F", ticker="XAU"
-        )
+        data.addDataset(source=DatasetProvider.YAHOO, file="GC=F", ticker="XAU")
     case _:
         # TODO: raise an exception
         pass
 
+data.normalize("close")
 
 data.exportDataset("csv")
 # data.exportDataset("parquet")
@@ -152,7 +152,7 @@ plt.figure(figsize=(12, 6))
 
 nbCols = 2
 nbRows = 2
-columns = ["open", "close", "low", "high"]
+columns = ["close", "closeNormalized"]
 for i, column in enumerate(columns):
     plt.subplot(nbRows * 100 + nbCols * 10 + i + 1)
     plt.plot(
@@ -182,6 +182,19 @@ for i, column in enumerate(columns):
     )
     plt.legend(fontsize=11)
     plt.grid(True, alpha=0.3)
+
+plt.subplot(223)
+seaborn.heatmap(
+    data.df.corr(),
+    annot=True,
+    fmt=".3f",
+    cmap="coolwarm",
+    center=0,
+    square=True,
+    linewidths=1,
+    cbar_kws={"shrink": 0.8},
+)
+plt.title("Correlation Matrix", fontsize=14, fontweight="bold", pad=20)
 
 plt.tight_layout()
 plt.show()
