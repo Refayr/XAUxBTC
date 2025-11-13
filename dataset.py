@@ -6,7 +6,7 @@ import kagglehub
 from kagglehub import KaggleDatasetAdapter
 import pandas
 
-# import yfinance
+import yfinance
 import enum
 
 
@@ -35,8 +35,8 @@ class Dataset:
     def cleanColumns(self, df, ticker):
         referenceLower = {col.lower() for col in self.columns}
 
-        def shouldDrop(col):
-            return col.lower() not in referenceLower
+        # def shouldDrop(col):
+        #    return col.lower() not in referenceLower
 
         def shouldRename(col):
             return col.lower() != col and col.lower() in referenceLower
@@ -47,7 +47,7 @@ class Dataset:
 
         df = df.drop(columns=drop).rename(columns=rename)
 
-        df["date"] = df["date"].astype(str).str[:10]
+        df["date"] = df["date"].astype(str).str[: len(self.dateFormat)]
         df["date"] = pandas.to_datetime(df["date"])
         if ticker is not None:
             df["ticker"] = ticker
@@ -71,9 +71,13 @@ class Dataset:
 
     def importFromYahoo(self, ticker, start=-1, end=-1):
         if start == -1 or end == -1:
-            return yfinance.download(ticker, period="max")
+            df = yfinance.download(ticker, period="max")
         else:
-            return yfinance.download(ticker, start=start, end=end)
+            df = yfinance.download(ticker, start=start, end=end)
+
+        df = df.stack().reset_index().rename(columns={"index": "date"})
+
+        return df
 
     def importFromKaggle(self, repo, file):
         # Download latest dataset from Kaggle
