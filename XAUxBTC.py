@@ -185,7 +185,9 @@ for i, column in enumerate(columns):
 
 plt.subplot(223)
 seaborn.heatmap(
-    data.df.corr(),
+    data.df.pivot(index="date", columns="ticker", values="closeNormalized").corr(
+        method="pearson"
+    ),
     annot=True,
     fmt=".3f",
     cmap="coolwarm",
@@ -194,7 +196,12 @@ seaborn.heatmap(
     linewidths=1,
     cbar_kws={"shrink": 0.8},
 )
-plt.title("Correlation Matrix", fontsize=14, fontweight="bold", pad=20)
+plt.title(
+    "Correlation Matrix of normalized close price",
+    fontsize=14,
+    fontweight="bold",
+    pad=20,
+)
 
 plt.tight_layout()
 plt.show()
