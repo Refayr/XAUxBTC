@@ -17,13 +17,13 @@ class DatasetProvider(enum.Enum):
 
 
 class Dataset:
-    def __init__(self, columns=None, trim=False):
+    def __init__(self, columns, trim=False):
         self.columns = columns
         self.trim = trim
         self.dateFormat = None
         # self.df = pandas.DataFrame(data=None, index=None, columns=None, dtype=None, copy=None)
         self.df = None
-        self.begin = -1
+        self.start = -1
         self.end = -1
 
     def setDateFormat(self, dateFormat="yyyy-mm-dd"):
@@ -33,19 +33,20 @@ class Dataset:
         return self.dateFormat
 
     def cleanColumns(self, df, ticker):
-        referenceLower = {col.lower() for col in self.columns}
+        if self.columns is not None:
+            referenceLower = {col.lower() for col in self.columns}
 
-        # def shouldDrop(col):
-        #    return col.lower() not in referenceLower
+            # def shouldDrop(col):
+            #    return col.lower() not in referenceLower
 
-        def shouldRename(col):
-            return col.lower() != col and col.lower() in referenceLower
+            def shouldRename(col):
+                return col.lower() != col and col.lower() in referenceLower
 
-        # drop = [col for col in df.columns if shouldDrop(col)]
-        drop = filter(lambda x: x.lower() not in referenceLower, df.columns)
-        rename = {col: col.lower() for col in df.columns if shouldRename(col)}
+            # drop = [col for col in df.columns if shouldDrop(col)]
+            drop = filter(lambda x: x.lower() not in referenceLower, df.columns)
+            rename = {col: col.lower() for col in df.columns if shouldRename(col)}
 
-        df = df.drop(columns=drop).rename(columns=rename)
+            df = df.drop(columns=drop).rename(columns=rename)
 
         df["date"] = df["date"].astype(str).str[: len(self.dateFormat)]
         df["date"] = pandas.to_datetime(df["date"])
@@ -55,7 +56,7 @@ class Dataset:
         return df
 
     def updateDateRange(self, df):
-        dfBegin = df["date"].iloc[0]
+        dfStart = df["date"].iloc[0]
         dfEnd = df["date"].iloc[-1]
 
         def updateBound(current, new, isLowerBound):
@@ -66,7 +67,7 @@ class Dataset:
             else:
                 return current
 
-        self.begin = updateBound(self.begin, dfBegin, isLowerBound=True)
+        self.start = updateBound(self.start, dfStart, isLowerBound=True)
         self.end = updateBound(self.end, dfEnd, isLowerBound=False)
 
     def _importFromYahoo(self, ticker, start=-1, end=-1):
@@ -91,8 +92,7 @@ class Dataset:
         )
 
     def _importFromCsv(self, file):
-        # TODO: import file from hard drive
-        pass
+        return pandas.read_csv(file)
 
     def addDataset(self, source, file, repo=None, ticker=None):
         match source:
@@ -101,18 +101,16 @@ class Dataset:
                 dfTmp = self._importFromKaggle(repo, file)
             case DatasetProvider.YAHOO:
                 # Download latest dataset from Yahoo Finance
-                dfTmp = self._importFromYahoo(file, self.begin, self.end)
+                dfTmp = self._importFromYahoo(file, self.start, self.end)
             case DatasetProvider.CSV:
                 # Use a local .csv file
                 dfTmp = self._importFromCsv(file)
             case _:
-                # TODO: raise an exception
-                pass
+                raise ValueError("Bad provider")
+                return self.df
 
-        # TODO: take care if self.columns == None
         dfTmp = self.cleanColumns(dfTmp, ticker)
 
-        # Sort values by dates
         dfTmp = dfTmp.sort_values(by="date")
 
         # Limit to a common range of dates
@@ -126,7 +124,7 @@ class Dataset:
         # Drop values out of date range
         if self.trim:
             self.df = self.df[
-                (self.df["date"] >= self.begin) & (self.df["date"] <= self.end)
+                (self.df["date"] >= self.start) & (self.df["date"] <= self.end)
             ]
             self.df = self.df.dropna()
 
@@ -147,37 +145,27 @@ class Dataset:
             else:
                 self.df.to_csv("dataset.csv")
 
-    # Create a new column base on the normalization of another column based on a ticker
-    def normalize(self, column):
-        normColumn = column + "Normalized"
-        stats = self.df.groupby("ticker")[column].agg(["mean", "std"])
+    def normalize(self, column, newColumnSuffix="Normalized"):
+        """Normalize a column to columnNormalized with parameters: mean = 0, standard deviation = 1
 
-        def normalizeGroup(group):
-            ticker = group.name
+        Keyword arguments:
+        column -- name of the column containing data to be normalized
+        newColumnSuffix -- suffix appended to "column" in order to create the column containing normalized values
+        """
+        normColumn = column + newColumnSuffix
+        stats = self.df.groupby("ticker")[column].agg(["mean", "std"], axis=0)
+
+        def normalizeValue(value, ticker):
             mean = stats.loc[ticker, "mean"]
             std = stats.loc[ticker, "std"]
-            if std != 0:
-                return (group[column] - mean) / std
+            if std != 0 and not pandas.isna(value):
+                return (value - mean) / std
             else:
                 return pandas.NA
 
-        self.df[normColumn] = self.df.groupby("ticker")[column].transform(
-            lambda x: (x - stats.loc[x.name, "mean"]) / stats.loc[x.name, "std"]
-            if stats.loc[x.name, "std"] != 0
-            else pandas.NA
+        self.df[normColumn] = self.df.apply(
+            lambda row: normalizeValue(row[column], row["ticker"]), axis=1
         )
-
-        # tickers = self.df["ticker"].unique()
-
-        # for ticker in tickers:
-        #    mask = self.df["ticker"] == ticker
-        #    dfTmp = self.df[mask][column].dropna()
-        #    if len(dfTmp) > 0:
-        #        mean = dfTmp.mean()
-        #        std = dfTmp.std()
-        #        self.df.loc[mask, normColumn] = (self.df.loc[mask, column] - mean) / std
-        #    else:
-        #        self.df.loc[mask, normColumn] = pandas.NA
 
         return self.df
 

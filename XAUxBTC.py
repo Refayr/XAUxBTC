@@ -105,44 +105,48 @@ files = [
     "XMR.csv",
     "XRP.csv",
     "XTZ.csv",
-    "YFI.csv",
+    # "YFI.csv", # Broken link
     "ZEC.csv",
     "ZEN.csv",
     "ZRX.csv",
 ]
 
 # TODO: remove this overload of files (gaining time in DEBUG mode)
-files = ["BTC.csv"]
+# files = ["BTC.csv"]
 
-data = Dataset(columns={"ticker", "date", "open", "high", "low", "close"}, trim=False)
+# data = Dataset(columns={"ticker", "date", "open", "high", "low", "close"}, trim=False)
+data = Dataset(columns={"ticker", "date", "close"}, trim=False)
+
 data.setDateFormat("yyyy-mm-dd")
-for file in files:
-    data.addDataset(
-        source=DatasetProvider.KAGGLE,
-        repo="svaningelgem/crypto-currencies-daily-prices",
-        file=file,
-    )
 
-provider = "Yahoo"
-match provider:
-    case "Kaggle":
+localFile = False
+if localFile:
+    data.addDataset(source=DatasetProvider.CSV, file="dataset.csv")
+else:
+    for file in files:
         data.addDataset(
             source=DatasetProvider.KAGGLE,
-            repo="isaaclopgu/gold-historical-data-daily-updated",
-            file="Gold_Spot_historical_data.csv",
-            ticker="XAU",
+            repo="svaningelgem/crypto-currencies-daily-prices",
+            file=file,
         )
-    case "Yahoo":
-        data.addDataset(source=DatasetProvider.YAHOO, file="GC=F", ticker="XAU")
-    case _:
-        # TODO: raise an exception
-        pass
+
+    provider = "Kaggle"
+    match provider:
+        case "Kaggle":
+            data.addDataset(
+                source=DatasetProvider.KAGGLE,
+                repo="isaaclopgu/gold-historical-data-daily-updated",
+                file="Gold_Spot_historical_data.csv",
+                ticker="XAU",
+            )
+        case "Yahoo":
+            data.addDataset(source=DatasetProvider.YAHOO, file="GC=F", ticker="XAU")
+        case _:
+            raise ValueError("Bad provider")
 
 data.normalize("close")
 
 data.exportDataset("csv")
-# data.exportDataset("parquet")
-# data.exportDataset("excel")
 
 print(data.df.head)
 
@@ -204,4 +208,44 @@ plt.title(
 )
 
 plt.tight_layout()
+plt.show()
+
+dfPivoted = data.df.pivot(index="date", columns="ticker", values="closeNormalized")
+corrMatrix = dfPivoted.corr()
+corrWithXAUMatrix = corrMatrix[["XAU"]].drop(index="XAU").T
+
+print("\nCorrelation Matrix")
+print(corrWithXAUMatrix)
+
+row = corrWithXAUMatrix.iloc[0]
+sortedCols = row.abs().sort_values(ascending=False).index
+corrWithXAUMatrix_sorted = corrWithXAUMatrix[sortedCols]
+print("\nSorted Correlation Matrix")
+print(corrWithXAUMatrix_sorted)
+
+minCorr = 0.5
+corrWithXAUMatrix_sorted = corrWithXAUMatrix_sorted.where(
+    corrWithXAUMatrix_sorted.abs() > minCorr
+)
+corrWithXAUMatrix_sorted = corrWithXAUMatrix_sorted.dropna(axis=1, how="all")
+print(f"\nSorted Correlation Matrix > {minCorr}")
+print(corrWithXAUMatrix_sorted)
+
+plt.figure(figsize=(16, 10))
+seaborn.heatmap(
+    corrWithXAUMatrix_sorted,
+    annot=True,
+    fmt=".3f",
+    cmap="coolwarm",
+    center=0,
+    square=True,
+    linewidths=1,
+    cbar_kws={"shrink": 0.8},
+)
+plt.title(
+    "Correlation Matrix of normalized close price",
+    fontsize=14,
+    fontweight="bold",
+    pad=20,
+)
 plt.show()
