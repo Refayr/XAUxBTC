@@ -153,7 +153,7 @@ class Dataset:
         newColumnSuffix -- suffix appended to "column" in order to create the column containing normalized values
         """
         normColumn = column + newColumnSuffix
-        stats = self.df.groupby("ticker")[column].agg(["mean", "std"], axis=0)
+        stats = self.df.groupby("ticker")[column].agg(["mean", "std"])
 
         def normalizeValue(value, ticker):
             mean = stats.loc[ticker, "mean"]
