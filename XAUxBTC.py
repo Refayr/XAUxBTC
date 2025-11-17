@@ -11,11 +11,11 @@ csvFiles = [
     "ADA.csv",
     "ALGO.csv",
     "AMP.csv",
-    "APE.csv",  # start 2020-10-01
-    "AR.csv",  # start 2024-02-07
+    "APE.csv",  
+    "AR.csv",  
     "ATOM.csv",
-    "AVAX.csv",  # 2020-07-13
-    "AXS.csv",  # 2020-08-31
+    "AVAX.csv",  
+    "AXS.csv",  
     "BAT.csv",
     "BCH.csv",
     "BNB.csv",
@@ -70,7 +70,6 @@ csvFiles = [
     "NEXO.csv",
     "NFT.csv",
     "OKB.csv",
-    "PAXG.csv",
     "POL.csv",
     "QNT.csv",
     "QTUM.csv",
@@ -92,12 +91,8 @@ csvFiles = [
     "TUSD.csv",
     "TWT.csv",
     "UNI.csv",
-    "USDC.csv",
-    "USDD.csv",
-    "USDT.csv",
     "VET.csv",
     "WEMIX.csv",
-    "XAUt.csv",
     "XCN.csv",
     "XDC.csv",
     "XEC.csv",
