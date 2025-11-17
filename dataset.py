@@ -80,7 +80,7 @@ class Dataset:
 
         return df
 
-    def _importFromKaggle(self, repo, file):
+    def _importFromKaggle(self, repo, file=None):
         # Download latest dataset from Kaggle
         return kagglehub.load_dataset(
             KaggleDatasetAdapter.PANDAS,
@@ -94,7 +94,9 @@ class Dataset:
     def _importFromCsv(self, file):
         return pandas.read_csv(file)
 
-    def addDataset(self, source, file, repo=None, ticker=None):
+    def addDataset(self, source, repo=None, file=None, ticker=None):
+        # TODO: reject importing an already present ticker
+        # and handle exceptions raised by import error from Yahoo and Kaggle
         match source:
             case DatasetProvider.KAGGLE:
                 # Download latest dataset from Kaggle

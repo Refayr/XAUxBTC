@@ -5,7 +5,7 @@ from dataset import DatasetProvider
 
 
 # Set the path to the file you'd like to load from Kaggle's dataset
-files = [
+csvFiles = [
     "1INCH.csv",
     "AAVE.csv",
     "ADA.csv",
@@ -112,7 +112,7 @@ files = [
 ]
 
 # TODO: remove this overload of files (gaining time in DEBUG mode)
-# files = ["BTC.csv"]
+# csvFiles = ["BTC.csv"]
 
 # data = Dataset(columns={"ticker", "date", "open", "high", "low", "close"}, trim=False)
 data = Dataset(columns={"ticker", "date", "close"}, trim=False)
@@ -123,15 +123,15 @@ localFile = False
 if localFile:
     data.addDataset(source=DatasetProvider.CSV, file="dataset.csv")
 else:
-    for file in files:
+    for csvFile in csvFiles:
         data.addDataset(
             source=DatasetProvider.KAGGLE,
             repo="svaningelgem/crypto-currencies-daily-prices",
-            file=file,
+            file=csvFile,
         )
 
-    provider = "Kaggle"
-    match provider:
+    goldProvider = "Kaggle"
+    match goldProvider:
         case "Kaggle":
             data.addDataset(
                 source=DatasetProvider.KAGGLE,
@@ -207,13 +207,12 @@ plt.title(
     pad=20,
 )
 
-plt.tight_layout()
-plt.show()
+# plt.tight_layout()
+# plt.show()
 
 dfPivoted = data.df.pivot(index="date", columns="ticker", values="closeNormalized")
 corrMatrix = dfPivoted.corr()
 corrWithXAUMatrix = corrMatrix[["XAU"]].drop(index="XAU").T
-
 print("\nCorrelation Matrix")
 print(corrWithXAUMatrix)
 
@@ -231,7 +230,8 @@ corrWithXAUMatrix_sorted = corrWithXAUMatrix_sorted.dropna(axis=1, how="all")
 print(f"\nSorted Correlation Matrix > {minCorr}")
 print(corrWithXAUMatrix_sorted)
 
-plt.figure(figsize=(16, 10))
+# plt.figure(figsize=(16, 10))
+plt.subplot(224)
 seaborn.heatmap(
     corrWithXAUMatrix_sorted,
     annot=True,
@@ -243,7 +243,7 @@ seaborn.heatmap(
     cbar_kws={"shrink": 0.8},
 )
 plt.title(
-    "Correlation Matrix of normalized close price",
+    "Most correlated (>50%)",
     fontsize=14,
     fontweight="bold",
     pad=20,
