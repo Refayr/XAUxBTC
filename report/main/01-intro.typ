@@ -16,12 +16,12 @@
   Always place yourself in the point of view of the reader. For who is the report intended? What do they need to know to understand the project? Create and follow a red thread that guides the reader through the report.
 ]
 
-
 == Context
 Gold has been used as currency since the 6#super[th] century BC and has played an important role throughout world history. Especially after the establishment of the gold standard, gold becomes the basis for maintaining the world monetary system. Later, although the gold standard system was gradually abolished in the 20#super[th] century due to the Great Depression, gold still occupies an important position in the modern economy. Conversely, cryptocurrencies are much more recent and have been launched in the 21#super[th] century on the Blockchain.
 Even if the gold standard system has been abolished, does any correlation between gold and cryptocurrencies could be found? An analysis on several period of time in order to find out one (or more) year when gold stop (or begin) to act as a standard for cryptocurrencies. Our research will aim in a procedure to find it out by defining objectives, enumerating methods needed and the toolkit compulsory to compute data.
 
 == Aims and Objectives
+
 === Aims: We want to find out a correlation between gold and any cryptocurrency exchange rates.
 #ideabox()[At this point, there may not be any correlation between both exchanges rates as one is very stable and the other is very volatile.]
 + Objective 1: Compare the exchange rates, find out if there is a comparable period of time when the cryptocurrency and gold are correlated.
@@ -36,18 +36,25 @@ Additionally we want to find out other parameters (mean, variance, etc.) in orde
 
 == Toolkit
 We will use some libraries for doing mathematical computations and to draw graphs (eg. Matplotlib).
+
 === Libraries used
 #rocketbox()[kagglehub and pandas are directly handled by the Dataset class]
-+ kagglehub (for keeping using the latest datasets)
++ kagglehub (downloading latest datasets from Kaggle)
++ yfinance (downloading latest datasets from Yahoo! Finance)
 + pandas (to manipulate the dataframes)
-+ matplotlib
++ matplotlib (to plot the charts and graphs)
++ seaborn (to show correlation matrices)
+
 === Datasets used
 + #link(
     "https://www.kaggle.com/datasets/svaningelgem/crypto-currencies-daily-prices/data?select=BTC.csv",
   )[Crypto cryptocurrencies daily prices]
++ #link("https://")[Yahoo cryptos]
 + #link(
     "https://www.kaggle.com/datasets/isaaclopgu/gold-historical-data-daily-updated",
   )[Gold historical data daily updated]
++ #link("https://")[Yahoo! gold]
+
 ==== Dataset modifications
 + Dates before 17/07/2010 must be droped as no cryptocurrency were available before
 + Columns keeped :
@@ -58,6 +65,7 @@ We will use some libraries for doing mathematical computations and to draw graph
   - high
   - low
   - close
+
 === Usefull tools
 + Git
   - git add newFile
@@ -65,6 +73,50 @@ We will use some libraries for doing mathematical computations and to draw graph
   - git push -u origin main
   - git pull git\@github.com:user/repository.git
 
+== Dataset
+
+=== Dataset structure
+#figure(
+  table(
+    columns: 5,
+    stroke: none,
+    align: (left + horizon),
+    //inset: 3pt,
+    table.vline(x: 1, start: 0, end: 2, stroke: 0.5pt), table.header(
+      [],
+      [*date*],
+      [*ticker*],
+      [*close*],
+      [*closeNormalized*],
+    ),
+    table.hline(stroke: 0.5pt),                         [index], [date], [currency short name], [price at closing time in \$],
+    [normalized (by ticker) price],
+  ),
+  caption: "Dataset structure as a Pandas Dataframe",
+)
+
+=== Tickers
+
+The following tickers have more than 50% of correlation with gold over the whole period:
++ PAXG: 0.9997041186031184 correlated with XAU
++ XAUt: 0.9991536823382102 correlated with XAU
++ TRX: 0.914206355226965 correlated with XAU
++ BTC: 0.9043753594253107 correlated with XAU
++ BNB: 0.871339510212942 correlated with XAU
++ LEO: 0.8616999596788716 correlated with XAU
++ GT: 0.8477381081302898 correlated with XAU
++ SUN: 0.847138790223619 correlated with XAU
++ OKB: 0.8155979268149238 correlated with XAU
++ XRP: 0.8146858576249392 correlated with XAU
++ ETH: 0.7467669149517626 correlated with XAU
++ DYDX: -0.6995799075365946 correlated with XAU
++ SOL: 0.6677001141237018 correlated with XAU
++ RAY: 0.6635215929593485 correlated with XAU
++ XMR: 0.6589196953487225 correlated with XAU
++ DOGE: 0.6413435685790101 correlated with XAU
++ SNX: -0.6339626187995939 correlated with XAU
++ APE: -0.5186235203274178 correlated with XAU
++ ENS: 0.5019188523806718 correlated with XAU
 
 == Basic markup
 
@@ -80,7 +132,7 @@ You can also write numbered or unnumbered lists:
 Need equations? Sure! They look great as blocks too:
 
 #figure(
-  [$ sin(x) = x - x^3/(3!) + x^5/(5!) - ... = sum_(n=0)^infinity (-1)^n/((2n+1)!)x^(2n+1) $],
+  [$ sin(x) = x - x^3 / (3!) + x^5 / (5!) - ... = sum_(n=0)^infinity (-1)^n / ((2n+1)!)x^(2n+1) $],
 )
 
 == Images
@@ -103,8 +155,8 @@ Tables are great for organizing data. From simple to complex, Typst handles them
     align: (left + horizon),
     table.header([*Name*], [*Age*], [*City*]),
     [Albert Einstein], [25], [Bern],
-    [Marie Curie], [22], [Paris],
-    [Isaac Newton], [30], [London],
+    [Marie Curie],     [22], [Paris],
+    [Isaac Newton],    [30], [London],
   ),
   caption: "Simple table",
 )
@@ -115,25 +167,11 @@ Tables are great for organizing data. From simple to complex, Typst handles them
     stroke: none,
     align: center,
     inset: 3pt,
-    table.vline(x: 0, start: 1, end: 2, stroke: 0.5pt),
-    table.vline(x: 1, start: 1, end: 2, stroke: 0.5pt),
-    table.vline(x: 2, start: 1, end: 2, stroke: 0.5pt),
-    table.vline(x: 3, start: 1, end: 2, stroke: 0.5pt),
-    table.vline(x: 4, start: 1, end: 2, stroke: 0.5pt),
-    table.vline(x: 5, start: 1, end: 2, stroke: 0.5pt),
-    table.vline(x: 6, start: 1, end: 2, stroke: 0.5pt),
-    table.vline(x: 7, start: 1, end: 2, stroke: 0.5pt),
-    table.vline(x: 8, start: 1, end: 2, stroke: 0.5pt),
-    [\[31:27\]], [], [], [\[24:20\]], [\[19:15\]], [\[14:12\]], [\[11:7\]], [\[6:0\]], table.hline(stroke: 0.5pt),
-    [funct5], [aq], [rl], [rs2], [rs1], [funct3], [rd], [opcode], table.hline(stroke: 0.5pt),
-    [#align(center)[5]],
-    [],
-    [],
-    [#align(center)[5]],
-    [#align(center)[5]],
-    [#align(center)[3]],
-    [#align(center)[5]],
-    [#align(center)[7]],
+    table.vline(x: 0, start: 1, end: 2, stroke: 0.5pt), table.vline(x: 1, start: 1, end: 2, stroke: 0.5pt), table.vline(x: 2, start: 1, end: 2, stroke: 0.5pt), table.vline(x: 3, start: 1, end: 2, stroke: 0.5pt), table.vline(x: 4, start: 1, end: 2, stroke: 0.5pt), table.vline(x: 5, start: 1, end: 2, stroke: 0.5pt), table.vline(x: 6, start: 1, end: 2, stroke: 0.5pt), table.vline(x: 7, start: 1, end: 2, stroke: 0.5pt),
+    table.vline(x: 8, start: 1, end: 2, stroke: 0.5pt), [\[31:27\]],                                        [],                                                 [],                                                 [\[24:20\]],                                        [\[19:15\]],                                        [\[14:12\]],                                        [\[11:7\]],
+    [\[6:0\]],                                          table.hline(stroke: 0.5pt),                         [funct5],                                           [aq],                                               [rl],                                               [rs2],                                              [rs1],                                              [funct3],
+    [rd],                                               [opcode],                                           table.hline(stroke: 0.5pt),                         [#align(center)[5]],                                [],                                                 [],                                                 [#align(center)[5]],                                [#align(center)[5]],
+    [#align(center)[3]],                                [#align(center)[5]],                                [#align(center)[7]],
   ),
   caption: [Complex table],
 )
@@ -146,8 +184,8 @@ Highlight key points with these fun boxes (and more):
   columns: 2,
   stroke: none,
   [ #infobox()[Infobox: For highlighting information.] ], [ #ideabox()[Ideabox: Share a brilliant idea.] ],
-  [ #warningbox()[Warningbox: Proceed with caution!] ], [ #firebox()[Firebox: This is 🔥!] ],
-  [ #rocketbox()[Rocketbox: Shoot for the moon!] ], [ #todobox()[Todobox: Just do it!] ],
+  [ #warningbox()[Warningbox: Proceed with caution!] ],   [ #firebox()[Firebox: This is 🔥!] ],
+  [ #rocketbox()[Rocketbox: Shoot for the moon!] ],       [ #todobox()[Todobox: Just do it!] ],
 )
 
 == Citations, Acronyms and Glossary
@@ -163,8 +201,7 @@ Acronym terms like #gls("it") expand on first use and abbreviate after #gls("it"
 Besides writing inline code as such #raw(lang: "rust", "fn main() { println!(\"Hello World\") }") you can also write code blocks like this:
 
 #figure(
-  sourcecode()[
-    ```rust
+  sourcecode()[ ```rust
     fn main() {
       let ship = Starship::new("USS Rustacean", (0.0, 0.0, 0.0));
       let destination = (42.0, 13.0, 7.0);

@@ -11,11 +11,11 @@ csvFiles = [
     "ADA.csv",
     "ALGO.csv",
     "AMP.csv",
-    "APE.csv",  
-    "AR.csv",  
+    "APE.csv",
+    "AR.csv",
     "ATOM.csv",
-    "AVAX.csv",  
-    "AXS.csv",  
+    "AVAX.csv",
+    "AXS.csv",
     "BAT.csv",
     "BCH.csv",
     "BNB.csv",
@@ -66,9 +66,9 @@ csvFiles = [
     "MINA.csv",
     "MX.csv",
     "NEAR.csv",
-    "NEO.csv",
-    "NEXO.csv",
-    "NFT.csv",
+    # "NEO.csv",  # Broken link
+    "NEXO.csv",  # Broken link
+    "NFT.csv",  # Broken link
     "OKB.csv",
     "POL.csv",
     "QNT.csv",
@@ -82,7 +82,7 @@ csvFiles = [
     "SOL.csv",
     "STX.csv",
     "SUN.csv",
-    "SUPER.csv",
+    # "SUPER.csv",  # Broken link
     "SYRUP.csv",
     "TFUEL.csv",
     "THETA.csv",
@@ -100,7 +100,7 @@ csvFiles = [
     "XMR.csv",
     "XRP.csv",
     "XTZ.csv",
-    # "YFI.csv", # Broken link
+    # "YFI.csv",  # Broken link
     "ZEC.csv",
     "ZEN.csv",
     "ZRX.csv",
@@ -114,7 +114,7 @@ data = Dataset(columns={"ticker", "date", "close"}, trim=False)
 
 data.setDateFormat("yyyy-mm-dd")
 
-localFile = False
+localFile = True
 if localFile:
     data.addDataset(source=DatasetProvider.CSV, file="dataset.csv")
 else:
@@ -182,25 +182,25 @@ for i, column in enumerate(columns):
     plt.legend(fontsize=11)
     plt.grid(True, alpha=0.3)
 
-plt.subplot(223)
-seaborn.heatmap(
-    data.df.pivot(index="date", columns="ticker", values="closeNormalized").corr(
-        method="pearson"
-    ),
-    annot=True,
-    fmt=".3f",
-    cmap="coolwarm",
-    center=0,
-    square=True,
-    linewidths=1,
-    cbar_kws={"shrink": 0.8},
-)
-plt.title(
-    "Correlation Matrix of normalized close price",
-    fontsize=14,
-    fontweight="bold",
-    pad=20,
-)
+# plt.subplot(223)
+# seaborn.heatmap(
+#    data.df.pivot(index="date", columns="ticker", values="closeNormalized").corr(
+#        method="pearson"
+#    ),
+#    annot=True,
+#    fmt=".3f",
+#    cmap="coolwarm",
+#    center=0,
+#    square=True,
+#    linewidths=1,
+#    cbar_kws={"shrink": 0.8},
+# )
+# plt.title(
+#    "Correlation Matrix of normalized close price",
+#    fontsize=14,
+#    fontweight="bold",
+#    pad=20,
+# )
 
 # plt.tight_layout()
 # plt.show()
@@ -224,6 +224,41 @@ corrWithXAUMatrix_sorted = corrWithXAUMatrix_sorted.where(
 corrWithXAUMatrix_sorted = corrWithXAUMatrix_sorted.dropna(axis=1, how="all")
 print(f"\nSorted Correlation Matrix > {minCorr}")
 print(corrWithXAUMatrix_sorted)
+for ticker in corrWithXAUMatrix_sorted.columns:
+    print(f"{ticker}: {corrWithXAUMatrix_sorted.at['XAU', ticker]} correlated with XAU")
+
+
+plt.subplot(223)
+column = "closeNormalized"
+plt.plot(
+    data.getTicker("XAU")["date"],
+    data.getTicker("XAU")[column],
+    marker="o",
+    linestyle="-",
+    linewidth=1,
+    markersize=1,
+    label="XAU",
+    color="gold",
+)
+for ticker in corrWithXAUMatrix_sorted.columns:
+    plt.plot(
+        data.getTicker(ticker)["date"],
+        data.getTicker(ticker)[column],
+        marker="s",
+        linestyle="--",
+        linewidth=1,
+        markersize=1,
+        label=ticker,
+        color="blue",
+    )
+plt.xlabel("dates", fontsize=12)
+plt.ylabel(f"{column} prices", fontsize=12)
+plt.title(
+    f"Gold / Cryptos comparison ({column} prices)", fontsize=14, fontweight="bold"
+)
+plt.legend(fontsize=11)
+plt.grid(True, alpha=0.3)
+
 
 # plt.figure(figsize=(16, 10))
 plt.subplot(224)
@@ -243,4 +278,69 @@ plt.title(
     fontweight="bold",
     pad=20,
 )
+plt.tight_layout()
+plt.show()
+
+
+column = "closeNormalized"
+colors = [
+    "dimgrey",
+    "rosybrown",
+    "lightcoral",
+    "red",
+    "coral",
+    "sienna",
+    "seashell",
+    "chocolate",
+    "darkorange",
+    "tan",
+    "khaki",
+    "beige",
+    "olive",
+    "greenyellow",
+    "palegreen",
+    "darkgreen",
+    "aquamarine",
+    "lightseagreen",
+    "teal",
+    "cyan",
+    "deepskyblue",
+    "royalblue",
+    "lavender",
+    "navy",
+    "slateblue",
+    "blueviolet",
+    "plum",
+    "magenta",
+    "deeppink",
+    "crimson",
+]
+for i, ticker in enumerate(corrWithXAUMatrix_sorted.columns):
+    plt.plot(
+        data.getTicker(ticker)["date"],
+        data.getTicker(ticker)[column],
+        marker="s",
+        linestyle="--",
+        linewidth=1,
+        markersize=1,
+        label=ticker,
+        color=colors[i],
+    )
+plt.plot(
+    data.getTicker("XAU")["date"],
+    data.getTicker("XAU")[column],
+    marker="o",
+    linestyle="-",
+    linewidth=1,
+    markersize=1,
+    label="XAU",
+    color="gold",
+)
+plt.xlabel("dates", fontsize=12)
+plt.ylabel(f"{column} prices", fontsize=12)
+plt.title(
+    f"Gold / Cryptos comparison ({column} prices)", fontsize=14, fontweight="bold"
+)
+plt.legend(fontsize=11)
+plt.grid(True, alpha=0.3)
 plt.show()

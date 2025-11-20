@@ -82,14 +82,21 @@ class Dataset:
 
     def _importFromKaggle(self, repo, file=None):
         # Download latest dataset from Kaggle
-        return kagglehub.load_dataset(
-            KaggleDatasetAdapter.PANDAS,
-            repo,
-            file,
-            # Provide any additional arguments
-            # See the documenation for more information:
-            # https://github.com/Kaggle/kagglehub/blob/main/README.md#kaggledatasetadapterpandas
-        )
+        result = None
+        try:
+            result = kagglehub.load_dataset(
+                KaggleDatasetAdapter.PANDAS,
+                repo,
+                file,
+                # Provide any additional arguments
+                # See the documenation for more information:
+                # https://github.com/Kaggle/kagglehub/blob/main/README.md#kaggledatasetadapterpandas
+            )
+        except Exception:
+            raise Exception(
+                f"KAGGLE ERROR: {file} not found in the following repository: {repo}"
+            )
+        return result
 
     def _importFromCsv(self, file):
         return pandas.read_csv(file)
