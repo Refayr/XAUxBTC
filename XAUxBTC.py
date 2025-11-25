@@ -66,9 +66,9 @@ csvFiles = [
     "MINA.csv",
     "MX.csv",
     "NEAR.csv",
-    # "NEO.csv",  # Broken link
-    "NEXO.csv",  # Broken link
-    "NFT.csv",  # Broken link
+    "NEO.csv",
+    "NEXO.csv",
+    "NFT.csv",
     "OKB.csv",
     "POL.csv",
     "QNT.csv",
@@ -103,14 +103,14 @@ csvFiles = [
     # "YFI.csv",  # Broken link
     "ZEC.csv",
     "ZEN.csv",
-    "ZRX.csv",
+    # "ZRX.csv",  # Broken link
 ]
 
 # TODO: remove this overload of files (gaining time in DEBUG mode)
 # csvFiles = ["BTC.csv"]
 
 # data = Dataset(columns={"ticker", "date", "open", "high", "low", "close"}, trim=False)
-data = Dataset(columns={"ticker", "date", "close"}, trim=False)
+data = Dataset(columns={"ticker", "date", "close"}, trim=True)
 
 data.setDateFormat("yyyy-mm-dd")
 
@@ -205,8 +205,9 @@ for i, column in enumerate(columns):
 # plt.tight_layout()
 # plt.show()
 
+methods = ["pearson", "kendall", "spearman"]
 dfPivoted = data.df.pivot(index="date", columns="ticker", values="closeNormalized")
-corrMatrix = dfPivoted.corr()
+corrMatrix = dfPivoted.corr(method=methods[0])
 corrWithXAUMatrix = corrMatrix[["XAU"]].drop(index="XAU").T
 print("\nCorrelation Matrix")
 print(corrWithXAUMatrix)
@@ -294,7 +295,7 @@ colors = [
     "red",
     "coral",
     "sienna",
-    "seashell",
+    # "seashell",
     "chocolate",
     "darkorange",
     "tan",
