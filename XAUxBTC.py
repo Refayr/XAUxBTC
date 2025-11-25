@@ -217,9 +217,13 @@ corrWithXAUMatrix_sorted = corrWithXAUMatrix[sortedCols]
 print("\nSorted Correlation Matrix")
 print(corrWithXAUMatrix_sorted)
 
-minCorr = 0.5
+minCorr = 0.8
+maxCorr = 0.99
 corrWithXAUMatrix_sorted = corrWithXAUMatrix_sorted.where(
     corrWithXAUMatrix_sorted.abs() > minCorr
+)
+corrWithXAUMatrix_sorted = corrWithXAUMatrix_sorted.where(
+    corrWithXAUMatrix_sorted.abs() < maxCorr
 )
 corrWithXAUMatrix_sorted = corrWithXAUMatrix_sorted.dropna(axis=1, how="all")
 print(f"\nSorted Correlation Matrix > {minCorr}")
@@ -273,7 +277,7 @@ seaborn.heatmap(
     cbar_kws={"shrink": 0.8},
 )
 plt.title(
-    "Most correlated (>50%)",
+    "Most correlated (>80%)",
     fontsize=14,
     fontweight="bold",
     pad=20,
