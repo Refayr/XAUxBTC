@@ -21,10 +21,17 @@ class Dataset:
         self.columns = columns
         self.trim = trim
         self.dateFormat = None
-        # self.df = pandas.DataFrame(data=None, index=None, columns=None, dtype=None, copy=None)
         self.df = None
         self.start = -1
         self.end = -1
+
+    # def __init__(self, df):
+    #    self.columns = df.columns.tolist()
+    #    self.trim = True
+    #    self.dateFormat = None
+    #    self.df = df
+    #    self.start = -1
+    #    self.end = -1
 
     def setDateFormat(self, dateFormat="yyyy-mm-dd"):
         self.dateFormat = dateFormat
@@ -69,6 +76,20 @@ class Dataset:
 
         self.start = updateBound(self.start, dfStart, isLowerBound=True)
         self.end = updateBound(self.end, dfEnd, isLowerBound=False)
+
+    def trimDates(self):
+        """Only keeps the smallest common range of dates in the dataset"""
+        self.trim = True
+        df = self.df.sort_values(by="date")
+        dfPivoted = df.pivot(index="date", columns="ticker", values="close")
+        # TODO: do not delete middle NaN
+        dfPivoted = dfPivoted.dropna()
+        self.start = dfPivoted.index[0]
+        self.end = dfPivoted.index[-1]
+        df = df[(df["date"] >= self.start) & (df["date"] <= self.end)]
+        self.df = df.dropna()
+
+        return self.df
 
     def _importFromYahoo(self, ticker, start=-1, end=-1):
         if start == -1 or end == -1:
@@ -145,21 +166,29 @@ class Dataset:
         else:
             return self.df[self.df["ticker"] == ticker]
 
-    def exportDataset(self, format="csv"):
+    def exportDataset(self, format="csv", file=None):
         if self.df is not None:
             if format == "parquet":
-                self.df.to_parquet("dataset.parquet")
+                if file is None:
+                    self.df.to_parquet("dataset.parquet")
+                else:
+                    self.df.to_parquet(file)
             elif format == "excel":
-                self.df.to_excel("dataset.xlsx", sheet_name="Sheet1")
+                if file is None:
+                    self.df.to_excel("dataset.xlsx", sheet_name="Sheet1")
+                else:
+                    self.df.to_excel(file, sheet_name="Sheet1")
             else:
-                self.df.to_csv("dataset.csv")
+                if file is None:
+                    self.df.to_csv("dataset.csv")
+                else:
+                    self.df.to_csv(file)
 
     def normalize(self, column, newColumnSuffix="Normalized"):
         """Normalize a column to columnNormalized with parameters: mean = 0, standard deviation = 1
 
         Keyword arguments:
-        column -- name of the column containing data to be normalized
-        newColumnSuffix -- suffix appended to "column" in order to create the column containing normalized values
+        column -- name of the column containing data to be normalized newColumnSuffix -- suffix appended to "column" in order to create the column containing normalized values
         """
         normColumn = column + newColumnSuffix
         stats = self.df.groupby("ticker")[column].agg(["mean", "std"])
@@ -178,7 +207,9 @@ class Dataset:
 
         return self.df
 
-    def corr(self, values, method="pierson", min=0, max=1):
+    # TODO: normalized over min-max method
+
+    def corr(self, values, method="pearson", min=0, max=1):
         """Build the correlation matrix of the dataset (self.df) according to the column "values"
 
         Keyword arguments:
@@ -208,6 +239,18 @@ class Dataset:
             print(f"{ticker}: {corrMatrix.at['XAU', ticker]} correlated with XAU")
 
         return corrMatrix
+
+    def dropTickers(self, keep):
+        """Drop all the tickers that are not in the list
+
+        Keyword arguments:
+        keep -- list of tickers to keep
+        """
+        df = self.df
+
+        df = df[df["ticker"].isin(keep)]
+
+        return df
 
     def __getitem__(self, index):
         return self.df[index]

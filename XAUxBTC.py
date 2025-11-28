@@ -1,3 +1,5 @@
+import time
+import random
 import matplotlib.pyplot as plt
 import seaborn
 from dataset import Dataset
@@ -63,7 +65,7 @@ csvFiles = [
     "LPT.csv",
     "LTC.csv",
     "MANA.csv",
-    "MINA.csv",
+    # "MINA.csv",  # Bronken link
     "MX.csv",
     "NEAR.csv",
     "NEO.csv",
@@ -110,7 +112,7 @@ csvFiles = [
 # csvFiles = ["BTC.csv"]
 
 # data = Dataset(columns={"ticker", "date", "open", "high", "low", "close"}, trim=False)
-data = Dataset(columns={"ticker", "date", "close"}, trim=True)
+data = Dataset(columns={"ticker", "date", "close"}, trim=False)
 
 data.setDateFormat("yyyy-mm-dd")
 
@@ -118,12 +120,15 @@ localFile = True
 if localFile:
     data.addDataset(source=DatasetProvider.CSV, file="dataset.csv")
 else:
-    for csvFile in csvFiles:
+    for i, csvFile in enumerate(csvFiles):
         data.addDataset(
             source=DatasetProvider.KAGGLE,
             repo="svaningelgem/crypto-currencies-daily-prices",
             file=csvFile,
         )
+        # Pause 30s every 40 files to avoid download limit
+        if i % 40 == 0:
+            time.sleep(30)
 
     goldProvider = "Kaggle"
     match goldProvider:
@@ -179,63 +184,150 @@ colors = [
     "deeppink",
     "crimson",
 ]
+random.Random(42).shuffle(colors)
 
 methods = ["pearson", "kendall", "spearman"]
-minCorr = 0.8
+minCorr = 0.65
 maxCorr = 0.99
+
+tickers = ["XAU"]
 
 fig, axes = plt.subplots(3, 2, figsize=(18, 12))
 for i, method in enumerate(methods):
     axes[i, 0].clear()
     corrMatrix = data.corr(values=column, method=method, min=minCorr, max=maxCorr)
-    seaborn.heatmap(
-        corrMatrix,
-        annot=True,
-        annot_kws={"size": 10},
-        fmt=".2f",
-        cmap="coolwarm",
-        center=0,
-        square=True,
-        linewidths=0.5,
-        cbar_kws={"shrink": 0.8},
-        ax=axes[i, 0],
-    )
-    axes[i, 0].set_title(
-        f"Most correlated (>{minCorr * 100:.0f}%) wrt {method}",
-        fontsize=14,
-        fontweight="bold",
-        pad=20,
-    )
+    if not corrMatrix.empty:
+        tickers.extend(corrMatrix.T.index.tolist())
+        seaborn.heatmap(
+            corrMatrix,
+            annot=True,
+            annot_kws={"size": 10},
+            fmt=".2f",
+            cmap="coolwarm",
+            center=0,
+            square=True,
+            linewidths=0.5,
+            cbar_kws={"shrink": 0.8},
+            ax=axes[i, 0],
+        )
+        axes[i, 0].set_title(
+            f"Most correlated (>{minCorr * 100:.0f}%) wrt {method}",
+            fontsize=14,
+            fontweight="bold",
+            pad=20,
+        )
 
-    for j, ticker in enumerate(corrMatrix.columns):
+        for j, ticker in enumerate(corrMatrix.columns):
+            axes[i, 1].plot(
+                data.getTicker(ticker)["date"],
+                data.getTicker(ticker)[column],
+                marker="s",
+                linestyle="--",
+                linewidth=1,
+                markersize=1,
+                label=ticker,
+                color=colors[j],
+            )
         axes[i, 1].plot(
-            data.getTicker(ticker)["date"],
-            data.getTicker(ticker)[column],
-            marker="s",
-            linestyle="--",
+            data.getTicker("XAU")["date"],
+            data.getTicker("XAU")[column],
+            marker="o",
+            linestyle="-",
             linewidth=1,
             markersize=1,
-            label=ticker,
-            color=colors[j],
+            label="XAU",
+            color="gold",
         )
-    axes[i, 1].plot(
-        data.getTicker("XAU")["date"],
-        data.getTicker("XAU")[column],
-        marker="o",
-        linestyle="-",
-        linewidth=1,
-        markersize=1,
-        label="XAU",
-        color="gold",
-    )
-    axes[i, 1].set_xlabel("dates", fontsize=12)
-    axes[i, 1].set_ylabel(f"{column} prices", fontsize=12)
-    axes[i, 1].set_title(
-        f"Gold / Cryptos comparison ({column} prices)", fontsize=14, fontweight="bold"
-    )
-    axes[i, 1].legend(fontsize=11)
-    axes[i, 1].grid(True, alpha=0.3)
+        axes[i, 1].set_xlabel("dates", fontsize=12)
+        axes[i, 1].set_ylabel(f"{column} prices", fontsize=12)
+        axes[i, 1].set_title(
+            f"Gold / Cryptos comparison ({column} prices)",
+            fontsize=14,
+            fontweight="bold",
+        )
+        axes[i, 1].legend(fontsize=11)
+        axes[i, 1].grid(True, alpha=0.3)
 
 plt.tight_layout()
 plt.subplots_adjust(wspace=0.3, hspace=0.3)
 plt.show()
+# fig.savefig("chart.png")
+
+# Keep unique ticker names
+tickers = list(set(tickers))
+print(tickers)
+
+data.df = data.dropTickers(keep=tickers)
+data.trimDates()
+data.normalize("close")
+# print(data.df.columns.tolist())
+print(data.df.head)
+data.exportDataset("csv", "dataset_reduced.csv")
+
+
+methods = ["pearson", "kendall", "spearman"]
+minCorr = 0.70
+maxCorr = 0.99
+
+tickers = ["XAU"]
+
+fig, axes = plt.subplots(3, 2, figsize=(18, 12))
+for i, method in enumerate(methods):
+    axes[i, 0].clear()
+    corrMatrix = data.corr(values=column, method=method, min=minCorr, max=maxCorr)
+    if not corrMatrix.empty:
+        tickers.extend(corrMatrix.T.index.tolist())
+        seaborn.heatmap(
+            corrMatrix,
+            annot=True,
+            annot_kws={"size": 10},
+            fmt=".2f",
+            cmap="coolwarm",
+            center=0,
+            square=True,
+            linewidths=0.5,
+            cbar_kws={"shrink": 0.8},
+            ax=axes[i, 0],
+        )
+        axes[i, 0].set_title(
+            f"Most correlated (>{minCorr * 100:.0f}%) wrt {method}",
+            fontsize=14,
+            fontweight="bold",
+            pad=20,
+        )
+
+        for j, ticker in enumerate(corrMatrix.columns):
+            axes[i, 1].plot(
+                data.getTicker(ticker)["date"],
+                data.getTicker(ticker)[column],
+                marker="s",
+                linestyle="--",
+                linewidth=1,
+                markersize=1,
+                label=ticker,
+                color=colors[j],
+            )
+        axes[i, 1].plot(
+            data.getTicker("XAU")["date"],
+            data.getTicker("XAU")[column],
+            marker="o",
+            linestyle="-",
+            linewidth=1,
+            markersize=1,
+            label="XAU",
+            color="gold",
+        )
+        axes[i, 1].set_xlabel("dates", fontsize=12)
+        axes[i, 1].set_ylabel(f"{column} prices", fontsize=12)
+        axes[i, 1].set_title(
+            f"Gold / Cryptos comparison ({column} prices)",
+            fontsize=14,
+            fontweight="bold",
+        )
+        axes[i, 1].legend(fontsize=11)
+        axes[i, 1].grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.subplots_adjust(wspace=0.3, hspace=0.3)
+plt.show()
+print(colors[3])
