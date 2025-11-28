@@ -4,7 +4,7 @@
 
 = Analysis
 
-#option-style(type:option.type)[
+#option-style(type: option.type)[
   This chapter defines the project requirements and presents the theoretical background. If applicable, it should also include a *State of the art* review to compare existing solutions and justify the chosen approach.
 
   Key elements:
@@ -14,4 +14,8 @@
   - *Explain design choices* – Why did you choose this approach? What alternatives were considered?
 ]
 
-#lorem(200)
+== Requirements
+
+=== Dataset restrictions
+- Due to the high number of tickers, we have only used the crytos with at least 65% of correlation with gold (whatever the method used).
+- There is a hole in the dataset downloaded from Kaggle: no data are available between the December 10th 2024 and January 26th 2025. So the data analysis will occur from the first common date with all the interesting tickers and December 9th 2024.

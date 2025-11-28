@@ -1,10 +1,122 @@
 import time
-import datetime
 import random
 import matplotlib.pyplot as plt
 import seaborn
 from dataset import Dataset
 from dataset import DatasetProvider
+
+
+# Define a random color list
+colors = [
+    "dimgrey",
+    "rosybrown",
+    "lightcoral",
+    "red",
+    "coral",
+    "sienna",
+    # "seashell",  # Too clear
+    "chocolate",
+    "darkorange",
+    "tan",
+    "khaki",
+    # "beige",  # Too clear
+    "olive",
+    "greenyellow",
+    "palegreen",
+    "darkgreen",
+    "aquamarine",
+    "lightseagreen",
+    "teal",
+    "cyan",
+    "deepskyblue",
+    "royalblue",
+    "lavender",
+    "navy",
+    "slateblue",
+    "blueviolet",
+    "plum",
+    "magenta",
+    "deeppink",
+    "crimson",
+]
+random.Random(42).shuffle(colors)
+
+
+def subplot(corrMatrices, methods, minCorr, df, column):
+    """Draw a subplot of correlation matrices with associated plot
+
+    corrMatrices -- a list of correlation matrices
+    methods -- method names of the computation of the correlation matrices
+    minCorr -- minimal corralation percentage used in the computation of the correlation matrices
+    df -- dataframe used to plot
+    column -- column from the dataframe used in the plot (with "date")
+    """
+    fig, axes = plt.subplots(3, 2, figsize=(18, 12))
+    if len(corrMatrices) != len(methods):
+        raise (
+            Exception(
+                f"The number of correlation matrices is not the same as the number of methods to calculate them ({len(corrMatrices)}!={len(methods)})"
+            )
+        )
+
+    for i, corrMatrix in enumerate(corrMatrices):
+        axes[i, 0].clear()
+        if not corrMatrix.empty:
+            seaborn.heatmap(
+                corrMatrix,
+                annot=True,
+                annot_kws={"size": 10},
+                fmt=".2f",
+                cmap="coolwarm",
+                center=0,
+                square=True,
+                linewidths=0.5,
+                cbar_kws={"shrink": 0.8},
+                ax=axes[i, 0],
+            )
+            axes[i, 0].set_title(
+                f"Most correlated (>{minCorr * 100:.0f}%) wrt {methods[i]}",
+                fontsize=14,
+                fontweight="bold",
+                pad=20,
+            )
+
+            for j, ticker in enumerate(corrMatrix.columns):
+                dfTicker = df[df["ticker"] == ticker]
+                axes[i, 1].plot(
+                    dfTicker["date"],
+                    dfTicker[column],
+                    marker="s",
+                    linestyle="--",
+                    linewidth=1,
+                    markersize=1,
+                    label=ticker,
+                    color=colors[j],
+                )
+            dfTicker = df[df["ticker"] == "XAU"]
+            axes[i, 1].plot(
+                dfTicker["date"],
+                dfTicker[column],
+                marker="o",
+                linestyle="-",
+                linewidth=1,
+                markersize=1,
+                label="XAU",
+                color="gold",
+            )
+            axes[i, 1].set_xlabel("dates", fontsize=12)
+            axes[i, 1].set_ylabel(f"{column} prices", fontsize=12)
+            axes[i, 1].set_title(
+                f"Gold / Cryptos comparison ({column} prices)",
+                fontsize=14,
+                fontweight="bold",
+            )
+            axes[i, 1].legend(fontsize=11)
+            axes[i, 1].grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    plt.subplots_adjust(wspace=0.3, hspace=0.3)
+    plt.show()
 
 
 # Set the path to the file you'd like to load from Kaggle's dataset
@@ -73,6 +185,7 @@ csvFiles = [
     "NEXO.csv",
     "NFT.csv",
     "OKB.csv",
+    # "PAXG.csv",  # Too correlated
     "POL.csv",
     "QNT.csv",
     "QTUM.csv",
@@ -87,6 +200,7 @@ csvFiles = [
     "SUN.csv",
     # "SUPER.csv",  # Broken link
     "SYRUP.csv",
+    "TEL.csv",
     "TFUEL.csv",
     "THETA.csv",
     "TRAC.csv",
@@ -94,8 +208,12 @@ csvFiles = [
     "TUSD.csv",
     "TWT.csv",
     "UNI.csv",
+    "USDC.csv",
+    "USDD.csv",
+    "USDT.csv",
     "VET.csv",
     "WEMIX.csv",
+    # "XAUt.csv",  # Too correlated
     "XCN.csv",
     "XDC.csv",
     "XEC.csv",
@@ -103,21 +221,19 @@ csvFiles = [
     "XMR.csv",
     "XRP.csv",
     "XTZ.csv",
-    # "YFI.csv",  # Broken link
+    "YFI.csv",
     "ZEC.csv",
     "ZEN.csv",
     # "ZRX.csv",  # Broken link
 ]
 
-# TODO: remove this overload of files (gaining time in DEBUG mode)
-# csvFiles = ["BTC.csv"]
 
 # data = Dataset(columns={"ticker", "date", "open", "high", "low", "close"})
 data = Dataset(columns={"ticker", "date", "close"})
-
 data.setDateFormat("yyyy-mm-dd")
 
-localFile = False
+# Don't download the dataset and use the local .csv to gain time if localFile==True
+localFile = True
 if localFile:
     data.addDataset(source=DatasetProvider.CSV, file="dataset.csv")
 else:
@@ -127,7 +243,7 @@ else:
             repo="svaningelgem/crypto-currencies-daily-prices",
             file=csvFile,
         )
-        # Pause 30s every 40 files to avoid download limit
+        # Pause 30s every 40 files to avoid download limit error
         if i % 40 == 0:
             time.sleep(30)
 
@@ -145,47 +261,14 @@ else:
         case _:
             raise ValueError("Bad provider")
 
+
 data.normalize("close")
-
 data.exportDataset("csv")
-
 print(data.df.head)
 
 
+# First correlation matrices to select the most relevant tickers before preprocessing
 column = "closeNormalized"
-colors = [
-    "dimgrey",
-    "rosybrown",
-    "lightcoral",
-    "red",
-    "coral",
-    "sienna",
-    # "seashell",  # Too clear
-    "chocolate",
-    "darkorange",
-    "tan",
-    "khaki",
-    # "beige",  # Too clear
-    "olive",
-    "greenyellow",
-    "palegreen",
-    "darkgreen",
-    "aquamarine",
-    "lightseagreen",
-    "teal",
-    "cyan",
-    "deepskyblue",
-    "royalblue",
-    "lavender",
-    "navy",
-    "slateblue",
-    "blueviolet",
-    "plum",
-    "magenta",
-    "deeppink",
-    "crimson",
-]
-random.Random(42).shuffle(colors)
 
 methods = ["pearson", "kendall", "spearman"]
 minCorr = 0.65
@@ -193,66 +276,14 @@ maxCorr = 0.99
 
 tickers = ["XAU"]
 
-fig, axes = plt.subplots(3, 2, figsize=(18, 12))
-for i, method in enumerate(methods):
-    axes[i, 0].clear()
-    corrMatrix = data.corr(values=column, method=method, min=minCorr, max=maxCorr)
-    if not corrMatrix.empty:
-        tickers.extend(corrMatrix.T.index.tolist())
-        seaborn.heatmap(
-            corrMatrix,
-            annot=True,
-            annot_kws={"size": 10},
-            fmt=".2f",
-            cmap="coolwarm",
-            center=0,
-            square=True,
-            linewidths=0.5,
-            cbar_kws={"shrink": 0.8},
-            ax=axes[i, 0],
-        )
-        axes[i, 0].set_title(
-            f"Most correlated (>{minCorr * 100:.0f}%) wrt {method}",
-            fontsize=14,
-            fontweight="bold",
-            pad=20,
-        )
-
-        for j, ticker in enumerate(corrMatrix.columns):
-            axes[i, 1].plot(
-                data.getTicker(ticker)["date"],
-                data.getTicker(ticker)[column],
-                marker="s",
-                linestyle="--",
-                linewidth=1,
-                markersize=1,
-                label=ticker,
-                color=colors[j],
-            )
-        axes[i, 1].plot(
-            data.getTicker("XAU")["date"],
-            data.getTicker("XAU")[column],
-            marker="o",
-            linestyle="-",
-            linewidth=1,
-            markersize=1,
-            label="XAU",
-            color="gold",
-        )
-        axes[i, 1].set_xlabel("dates", fontsize=12)
-        axes[i, 1].set_ylabel(f"{column} prices", fontsize=12)
-        axes[i, 1].set_title(
-            f"Gold / Cryptos comparison ({column} prices)",
-            fontsize=14,
-            fontweight="bold",
-        )
-        axes[i, 1].legend(fontsize=11)
-        axes[i, 1].grid(True, alpha=0.3)
-
-plt.tight_layout()
-plt.subplots_adjust(wspace=0.3, hspace=0.3)
-plt.show()
-# fig.savefig("chart.png")
+corrMatrices = []
+for method in methods:
+    corrMatrices.append(
+        data.corr(values=column, method=method, min=minCorr, max=maxCorr)
+    )
+    if not corrMatrices[-1].empty:
+        tickers.extend(corrMatrices[-1].T.index.tolist())
+subplot(corrMatrices, methods, minCorr, data.df, column)
 
 # Keep unique ticker names
 tickers = list(set(tickers))
@@ -262,13 +293,16 @@ print(tickers)
 data.df = data.dropTickers(keep=tickers)
 data.trimDates()
 # Remove all data after the hole from 2024-12-10 to 2025-01-26
-data.end = datetime.date.fromisoformat("2024-12-09")
 data.end = "2024-12-09"
 data.df = data.df[data.df["date"] <= data.end]
 data.normalize("close")
 # print(data.df.columns.tolist())
 # print(data.df.head)
 data.exportDataset("csv", "dataset_reduced.csv")
+
+
+# Now we have only the most relevant tickers in the dataset, with the same time period
+
 
 # data2 = Dataset(columns={"ticker", "date", "close"})
 # data2.setDateFormat("yyyy-mm-dd")
@@ -287,74 +321,30 @@ data.exportDataset("csv", "dataset_reduced.csv")
 # data2.normalize("close")
 # data2.exportDataset("csv", "dataset_reduced.csv")
 
+
+# Second correlation matrices computation with usable values (the dataset is preprocessed)
+column = "closeNormalized"
+
 methods = ["pearson", "kendall", "spearman"]
 minCorr = 0.65
 maxCorr = 0.99
 
 tickers = ["XAU"]
-column = "closeNormalized"
 
-fig, axes = plt.subplots(3, 2, figsize=(18, 12))
-for i, method in enumerate(methods):
-    axes[i, 0].clear()
-    corrMatrix = data.corr(values=column, method=method, min=minCorr, max=maxCorr)
-    if not corrMatrix.empty:
-        tickers.extend(corrMatrix.T.index.tolist())
-        seaborn.heatmap(
-            corrMatrix,
-            annot=True,
-            annot_kws={"size": 10},
-            fmt=".2f",
-            cmap="coolwarm",
-            center=0,
-            square=True,
-            linewidths=0.5,
-            cbar_kws={"shrink": 0.8},
-            ax=axes[i, 0],
-        )
-        axes[i, 0].set_title(
-            f"Most correlated (>{minCorr * 100:.0f}%) wrt {method}",
-            fontsize=14,
-            fontweight="bold",
-            pad=20,
-        )
+corrMatrices = []
+for method in methods:
+    corrMatrices.append(
+        data.corr(values=column, method=method, min=minCorr, max=maxCorr)
+    )
+    if not corrMatrices[-1].empty:
+        tickers.extend(corrMatrices[-1].T.index.tolist())
+subplot(corrMatrices, methods, minCorr, data.df, column)
 
-        for j, ticker in enumerate(corrMatrix.columns):
-            axes[i, 1].plot(
-                data.getTicker(ticker)["date"],
-                data.getTicker(ticker)[column],
-                marker="s",
-                linestyle="--",
-                linewidth=1,
-                markersize=1,
-                label=ticker,
-                color=colors[j],
-            )
-        axes[i, 1].plot(
-            data.getTicker("XAU")["date"],
-            data.getTicker("XAU")[column],
-            marker="o",
-            linestyle="-",
-            linewidth=1,
-            markersize=1,
-            label="XAU",
-            color="gold",
-        )
-        axes[i, 1].set_xlabel("dates", fontsize=12)
-        axes[i, 1].set_ylabel(f"{column} prices", fontsize=12)
-        axes[i, 1].set_title(
-            f"Gold / Cryptos comparison ({column} prices)",
-            fontsize=14,
-            fontweight="bold",
-        )
-        axes[i, 1].legend(fontsize=11)
-        axes[i, 1].grid(True, alpha=0.3)
-
-plt.tight_layout()
-plt.subplots_adjust(wspace=0.3, hspace=0.3)
-plt.show()
 
 print(data.df.head)
 # Keep unique ticker names
 tickers = list(set(tickers))
 print(tickers)
+
+
+# TODO: machine learning (time based)

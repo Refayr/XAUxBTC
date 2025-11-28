@@ -180,7 +180,9 @@ class Dataset:
 
         Keyword arguments:
         values -- column to use in the computation of the correlation matrix
-        method -- "pearson", "kendall" or "spearman"
+        method -- "pearson" = Expectation((X-mean(X))*(Y-mean(Y))) / (std(X)*std(Y)) = Cov(X,Y) / (std(X)*std(Y))
+                  "kendall" = ((nb concordant pairs) - (nb discordent pairs)) / (nb pairs)
+                  "spearman" = pearson(rank(X), rank(Y))
         min -- minimal absolute value of correlation required
         max -- maximal absolution value of correlation required (to remove overfitted data)
         """
