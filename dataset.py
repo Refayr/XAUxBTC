@@ -17,21 +17,13 @@ class DatasetProvider(enum.Enum):
 
 
 class Dataset:
-    def __init__(self, columns, trim=False):
+    def __init__(self, columns):
         self.columns = columns
-        self.trim = trim
         self.dateFormat = None
+        self.trim = False
         self.df = None
         self.start = -1
         self.end = -1
-
-    # def __init__(self, df):
-    #    self.columns = df.columns.tolist()
-    #    self.trim = True
-    #    self.dateFormat = None
-    #    self.df = df
-    #    self.start = -1
-    #    self.end = -1
 
     def setDateFormat(self, dateFormat="yyyy-mm-dd"):
         self.dateFormat = dateFormat
@@ -62,27 +54,11 @@ class Dataset:
 
         return df
 
-    def updateDateRange(self, df):
-        dfStart = df["date"].iloc[0]
-        dfEnd = df["date"].iloc[-1]
-
-        def updateBound(current, new, isLowerBound):
-            if current == -1:
-                return new
-            if (isLowerBound and new > current) or (not isLowerBound and new < current):
-                return new
-            else:
-                return current
-
-        self.start = updateBound(self.start, dfStart, isLowerBound=True)
-        self.end = updateBound(self.end, dfEnd, isLowerBound=False)
-
     def trimDates(self):
         """Only keeps the smallest common range of dates in the dataset"""
         self.trim = True
         df = self.df.sort_values(by="date")
         dfPivoted = df.pivot(index="date", columns="ticker", values="close")
-        # TODO: do not delete middle NaN
         dfPivoted = dfPivoted.dropna()
         self.start = dfPivoted.index[0]
         self.end = dfPivoted.index[-1]
@@ -143,20 +119,10 @@ class Dataset:
 
         dfTmp = dfTmp.sort_values(by="date")
 
-        # Limit to a common range of dates
-        self.updateDateRange(dfTmp)
-
         if self.df is None:
             self.df = dfTmp
         else:
             self.df = pandas.concat([self.df, dfTmp])
-
-        # Drop values out of date range
-        if self.trim:
-            self.df = self.df[
-                (self.df["date"] >= self.start) & (self.df["date"] <= self.end)
-            ]
-            self.df = self.df.dropna()
 
         return self.df
 

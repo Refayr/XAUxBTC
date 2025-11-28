@@ -1,4 +1,5 @@
 import time
+import datetime
 import random
 import matplotlib.pyplot as plt
 import seaborn
@@ -111,12 +112,12 @@ csvFiles = [
 # TODO: remove this overload of files (gaining time in DEBUG mode)
 # csvFiles = ["BTC.csv"]
 
-# data = Dataset(columns={"ticker", "date", "open", "high", "low", "close"}, trim=False)
-data = Dataset(columns={"ticker", "date", "close"}, trim=False)
+# data = Dataset(columns={"ticker", "date", "open", "high", "low", "close"})
+data = Dataset(columns={"ticker", "date", "close"})
 
 data.setDateFormat("yyyy-mm-dd")
 
-localFile = True
+localFile = False
 if localFile:
     data.addDataset(source=DatasetProvider.CSV, file="dataset.csv")
 else:
@@ -159,12 +160,12 @@ colors = [
     "red",
     "coral",
     "sienna",
-    # "seashell",  # Not much saturated
+    # "seashell",  # Too clear
     "chocolate",
     "darkorange",
     "tan",
     "khaki",
-    "beige",
+    # "beige",  # Too clear
     "olive",
     "greenyellow",
     "palegreen",
@@ -257,19 +258,41 @@ plt.show()
 tickers = list(set(tickers))
 print(tickers)
 
+
 data.df = data.dropTickers(keep=tickers)
 data.trimDates()
+# Remove all data after the hole from 2024-12-10 to 2025-01-26
+data.end = datetime.date.fromisoformat("2024-12-09")
+data.end = "2024-12-09"
+data.df = data.df[data.df["date"] <= data.end]
 data.normalize("close")
 # print(data.df.columns.tolist())
-print(data.df.head)
+# print(data.df.head)
 data.exportDataset("csv", "dataset_reduced.csv")
 
+# data2 = Dataset(columns={"ticker", "date", "close"})
+# data2.setDateFormat("yyyy-mm-dd")
+# data2.start = data.start
+# data2.end = data.end
+# for ticker in tickers:
+#    if ticker != "XAU":
+#        data2.addDataset(source=DatasetProvider.YAHOO, file=ticker, ticker=ticker)
+# data2.addDataset(
+#    source=DatasetProvider.KAGGLE,
+#    repo="isaaclopgu/gold-historical-data-daily-updated",
+#    file="Gold_Spot_historical_data.csv",
+#    ticker="XAU",
+# )
+# data2.trimDates()
+# data2.normalize("close")
+# data2.exportDataset("csv", "dataset_reduced.csv")
 
 methods = ["pearson", "kendall", "spearman"]
-minCorr = 0.70
+minCorr = 0.65
 maxCorr = 0.99
 
 tickers = ["XAU"]
+column = "closeNormalized"
 
 fig, axes = plt.subplots(3, 2, figsize=(18, 12))
 for i, method in enumerate(methods):
@@ -330,4 +353,8 @@ for i, method in enumerate(methods):
 plt.tight_layout()
 plt.subplots_adjust(wspace=0.3, hspace=0.3)
 plt.show()
-print(colors[3])
+
+print(data.df.head)
+# Keep unique ticker names
+tickers = list(set(tickers))
+print(tickers)
