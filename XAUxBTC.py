@@ -146,147 +146,6 @@ data.exportDataset("csv")
 print(data.df.head)
 
 
-# Draw values on a graph
-plt.figure(figsize=(12, 6))
-
-nbCols = 2
-nbRows = 2
-columns = ["close", "closeNormalized"]
-for i, column in enumerate(columns):
-    plt.subplot(nbRows * 100 + nbCols * 10 + i + 1)
-    plt.plot(
-        data.getTicker("XAU")["date"],
-        data.getTicker("XAU")[column],
-        marker="o",
-        linestyle="-",
-        linewidth=2,
-        markersize=2,
-        label="XAU",
-        color="gold",
-    )
-    plt.plot(
-        data.getTicker("BTC")["date"],
-        data.getTicker("BTC")[column],
-        marker="s",
-        linestyle="--",
-        linewidth=2,
-        markersize=2,
-        label="BTC",
-        color="blue",
-    )
-    plt.xlabel("dates", fontsize=12)
-    plt.ylabel(f"{column} prices", fontsize=12)
-    plt.title(
-        f"Gold / Bitcoin comparison ({column} prices)", fontsize=14, fontweight="bold"
-    )
-    plt.legend(fontsize=11)
-    plt.grid(True, alpha=0.3)
-
-# plt.subplot(223)
-# seaborn.heatmap(
-#    data.df.pivot(index="date", columns="ticker", values="closeNormalized").corr(
-#        method="pearson"
-#    ),
-#    annot=True,
-#    fmt=".3f",
-#    cmap="coolwarm",
-#    center=0,
-#    square=True,
-#    linewidths=1,
-#    cbar_kws={"shrink": 0.8},
-# )
-# plt.title(
-#    "Correlation Matrix of normalized close price",
-#    fontsize=14,
-#    fontweight="bold",
-#    pad=20,
-# )
-
-# plt.tight_layout()
-# plt.show()
-
-methods = ["pearson", "kendall", "spearman"]
-dfPivoted = data.df.pivot(index="date", columns="ticker", values="closeNormalized")
-corrMatrix = dfPivoted.corr(method=methods[0])
-corrWithXAUMatrix = corrMatrix[["XAU"]].drop(index="XAU").T
-print("\nCorrelation Matrix")
-print(corrWithXAUMatrix)
-
-row = corrWithXAUMatrix.iloc[0]
-sortedCols = row.abs().sort_values(ascending=False).index
-corrWithXAUMatrix_sorted = corrWithXAUMatrix[sortedCols]
-print("\nSorted Correlation Matrix")
-print(corrWithXAUMatrix_sorted)
-
-minCorr = 0.8
-maxCorr = 0.99
-corrWithXAUMatrix_sorted = corrWithXAUMatrix_sorted.where(
-    corrWithXAUMatrix_sorted.abs() > minCorr
-)
-corrWithXAUMatrix_sorted = corrWithXAUMatrix_sorted.where(
-    corrWithXAUMatrix_sorted.abs() < maxCorr
-)
-corrWithXAUMatrix_sorted = corrWithXAUMatrix_sorted.dropna(axis=1, how="all")
-print(f"\nSorted Correlation Matrix > {minCorr}")
-print(corrWithXAUMatrix_sorted)
-for ticker in corrWithXAUMatrix_sorted.columns:
-    print(f"{ticker}: {corrWithXAUMatrix_sorted.at['XAU', ticker]} correlated with XAU")
-
-
-plt.subplot(223)
-column = "closeNormalized"
-plt.plot(
-    data.getTicker("XAU")["date"],
-    data.getTicker("XAU")[column],
-    marker="o",
-    linestyle="-",
-    linewidth=1,
-    markersize=1,
-    label="XAU",
-    color="gold",
-)
-for ticker in corrWithXAUMatrix_sorted.columns:
-    plt.plot(
-        data.getTicker(ticker)["date"],
-        data.getTicker(ticker)[column],
-        marker="s",
-        linestyle="--",
-        linewidth=1,
-        markersize=1,
-        label=ticker,
-        color="blue",
-    )
-plt.xlabel("dates", fontsize=12)
-plt.ylabel(f"{column} prices", fontsize=12)
-plt.title(
-    f"Gold / Cryptos comparison ({column} prices)", fontsize=14, fontweight="bold"
-)
-plt.legend(fontsize=11)
-plt.grid(True, alpha=0.3)
-
-
-# plt.figure(figsize=(16, 10))
-plt.subplot(224)
-seaborn.heatmap(
-    corrWithXAUMatrix_sorted,
-    annot=True,
-    fmt=".3f",
-    cmap="coolwarm",
-    center=0,
-    square=True,
-    linewidths=1,
-    cbar_kws={"shrink": 0.8},
-)
-plt.title(
-    "Most correlated (>80%)",
-    fontsize=14,
-    fontweight="bold",
-    pad=20,
-)
-plt.tight_layout()
-plt.show()
-
-
 column = "closeNormalized"
 colors = [
     "dimgrey",
@@ -295,7 +154,7 @@ colors = [
     "red",
     "coral",
     "sienna",
-    # "seashell",
+    # "seashell",  # Not much saturated
     "chocolate",
     "darkorange",
     "tan",
@@ -320,32 +179,63 @@ colors = [
     "deeppink",
     "crimson",
 ]
-for i, ticker in enumerate(corrWithXAUMatrix_sorted.columns):
-    plt.plot(
-        data.getTicker(ticker)["date"],
-        data.getTicker(ticker)[column],
-        marker="s",
-        linestyle="--",
+
+methods = ["pearson", "kendall", "spearman"]
+minCorr = 0.8
+maxCorr = 0.99
+
+fig, axes = plt.subplots(3, 2, figsize=(18, 12))
+for i, method in enumerate(methods):
+    axes[i, 0].clear()
+    corrMatrix = data.corr(values=column, method=method, min=minCorr, max=maxCorr)
+    seaborn.heatmap(
+        corrMatrix,
+        annot=True,
+        annot_kws={"size": 10},
+        fmt=".2f",
+        cmap="coolwarm",
+        center=0,
+        square=True,
+        linewidths=0.5,
+        cbar_kws={"shrink": 0.8},
+        ax=axes[i, 0],
+    )
+    axes[i, 0].set_title(
+        f"Most correlated (>{minCorr * 100:.0f}%) wrt {method}",
+        fontsize=14,
+        fontweight="bold",
+        pad=20,
+    )
+
+    for j, ticker in enumerate(corrMatrix.columns):
+        axes[i, 1].plot(
+            data.getTicker(ticker)["date"],
+            data.getTicker(ticker)[column],
+            marker="s",
+            linestyle="--",
+            linewidth=1,
+            markersize=1,
+            label=ticker,
+            color=colors[j],
+        )
+    axes[i, 1].plot(
+        data.getTicker("XAU")["date"],
+        data.getTicker("XAU")[column],
+        marker="o",
+        linestyle="-",
         linewidth=1,
         markersize=1,
-        label=ticker,
-        color=colors[i],
+        label="XAU",
+        color="gold",
     )
-plt.plot(
-    data.getTicker("XAU")["date"],
-    data.getTicker("XAU")[column],
-    marker="o",
-    linestyle="-",
-    linewidth=1,
-    markersize=1,
-    label="XAU",
-    color="gold",
-)
-plt.xlabel("dates", fontsize=12)
-plt.ylabel(f"{column} prices", fontsize=12)
-plt.title(
-    f"Gold / Cryptos comparison ({column} prices)", fontsize=14, fontweight="bold"
-)
-plt.legend(fontsize=11)
-plt.grid(True, alpha=0.3)
+    axes[i, 1].set_xlabel("dates", fontsize=12)
+    axes[i, 1].set_ylabel(f"{column} prices", fontsize=12)
+    axes[i, 1].set_title(
+        f"Gold / Cryptos comparison ({column} prices)", fontsize=14, fontweight="bold"
+    )
+    axes[i, 1].legend(fontsize=11)
+    axes[i, 1].grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.subplots_adjust(wspace=0.3, hspace=0.3)
 plt.show()

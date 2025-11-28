@@ -178,6 +178,37 @@ class Dataset:
 
         return self.df
 
+    def corr(self, values, method="pierson", min=0, max=1):
+        """Build the correlation matrix of the dataset (self.df) according to the column "values"
+
+        Keyword arguments:
+        values -- column to use in the computation of the correlation matrix
+        method -- "pearson", "kendall" or "spearman"
+        min -- minimal absolute value of correlation required
+        max -- maximal absolution value of correlation required (to remove overfitted data)
+        """
+        dfPivoted = self.df.pivot(index="date", columns="ticker", values=values)
+        corrMatrix = dfPivoted.corr(method=method)
+        corrMatrix = corrMatrix[["XAU"]].drop(index="XAU").T
+        # print("\nCorrelation Matrix")
+        # print(corrMatrix)
+
+        row = corrMatrix.iloc[0]
+        sortedCols = row.abs().sort_values(ascending=False).index
+        corrMatrix = corrMatrix[sortedCols]
+        # print("\nSorted Correlation Matrix")
+        # print(corrMatrix)
+
+        corrMatrix = corrMatrix.where(corrMatrix.abs() > min)
+        corrMatrix = corrMatrix.where(corrMatrix.abs() < max)
+        corrMatrix = corrMatrix.dropna(axis=1, how="all")
+        print(f"\nSorted Correlation Matrix > {min * 100:.0f}%")
+        print(corrMatrix)
+        for ticker in corrMatrix.columns:
+            print(f"{ticker}: {corrMatrix.at['XAU', ticker]} correlated with XAU")
+
+        return corrMatrix
+
     def __getitem__(self, index):
         return self.df[index]
 
