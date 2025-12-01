@@ -8,6 +8,7 @@ import pandas
 
 import yfinance
 import enum
+import time
 
 
 class DatasetProvider(enum.Enum):
@@ -90,9 +91,20 @@ class Dataset:
                 # https://github.com/Kaggle/kagglehub/blob/main/README.md#kaggledatasetadapterpandas
             )
         except Exception:
-            raise Exception(
-                f"KAGGLE ERROR: {file} not found in the following repository: {repo}"
-            )
+            # Sleeps 30sec when the download limit is reached
+            print(f"Waiting 30s before downloading {file}")
+            time.sleep(30)
+            try:
+                result = kagglehub.load_dataset(
+                    KaggleDatasetAdapter.PANDAS,
+                    repo,
+                    file,
+                )
+            except Exception:
+                raise Exception(
+                    f"KAGGLE ERROR: {file} not found in the following repository: {repo}"
+                )
+
         return result
 
     def _importFromCsv(self, file):

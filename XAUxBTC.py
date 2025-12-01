@@ -1,4 +1,3 @@
-import time
 import random
 import matplotlib.pyplot as plt
 import seaborn
@@ -42,7 +41,7 @@ colors = [
 random.Random(42).shuffle(colors)
 
 
-def subplot(corrMatrices, methods, minCorr, df, column):
+def drawCorrelationMatricesAndPlot(corrMatrices, methods, minCorr, df, column):
     """Draw a subplot of correlation matrices with associated plot
 
     corrMatrices -- a list of correlation matrices
@@ -237,15 +236,12 @@ localFile = True
 if localFile:
     data.addDataset(source=DatasetProvider.CSV, file="dataset.csv")
 else:
-    for i, csvFile in enumerate(csvFiles):
+    for csvFile in csvFiles:
         data.addDataset(
             source=DatasetProvider.KAGGLE,
             repo="svaningelgem/crypto-currencies-daily-prices",
             file=csvFile,
         )
-        # Pause 30s every 40 files to avoid download limit error
-        if i % 40 == 0:
-            time.sleep(30)
 
     goldProvider = "Kaggle"
     match goldProvider:
@@ -283,7 +279,7 @@ for method in methods:
     )
     if not corrMatrices[-1].empty:
         tickers.extend(corrMatrices[-1].T.index.tolist())
-subplot(corrMatrices, methods, minCorr, data.df, column)
+drawCorrelationMatricesAndPlot(corrMatrices, methods, minCorr, data.df, column)
 
 # Keep unique ticker names
 tickers = list(set(tickers))
@@ -338,7 +334,7 @@ for method in methods:
     )
     if not corrMatrices[-1].empty:
         tickers.extend(corrMatrices[-1].T.index.tolist())
-subplot(corrMatrices, methods, minCorr, data.df, column)
+drawCorrelationMatricesAndPlot(corrMatrices, methods, minCorr, data.df, column)
 
 
 print(data.df.head)
