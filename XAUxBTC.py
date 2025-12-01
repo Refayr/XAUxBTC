@@ -1,6 +1,12 @@
 import random
 import matplotlib.pyplot as plt
 import seaborn
+import pandas
+from utilsforecast.evaluation import evaluate
+from utilsforecast.losses import *
+from statsforecast import StatsForecast
+from statsforecast.models import Naive, HistoricAverage, WindowAverage, SeasonalNaive
+from statsforecast.models import AutoARIMA
 from dataset import Dataset
 from dataset import DatasetProvider
 
@@ -340,7 +346,46 @@ drawCorrelationMatricesAndPlot(corrMatrices, methods, minCorr, data.df, column)
 print(data.df.head)
 # Keep unique ticker names
 tickers = list(set(tickers))
-print(tickers)
+print(f"{len(tickers)} selected tickers: {tickers}")
+# print(f"{data.df.shape[0]} rows x {data.df.shape[1]} columns")
 
 
 # TODO: machine learning (time based)
+print("\nTime series Forecasting...")
+# TODO: Only BTC is taken, need to use every tickers with added "XAU" as exogenous variable
+dfCV = data.getTicker("BTC")[["date", "ticker", "closeNormalized"]]
+dfXAU = data.getTicker("XAU")[["date", "closeNormalized"]].rename(
+    columns={"closeNormalized": "XAU"}
+)
+# dfCV = pandas.merge(dfCV, dfXAU, how="inner", on="date")
+dfCV = pandas.merge(data.df, dfXAU, how="inner", on="date")
+dfCV = dfCV.rename(
+    columns={"date": "ds", "ticker": "unique_id", "closeNormalized": "y"}
+)
+dfCV = dfCV[dfCV["unique_id"] != "XAU"]
+dfCV.to_csv("timeseries.csv")
+print(dfCV.head)
+horizon = 7
+test = dfCV.tail(7)
+train = dfCV.drop(test.index).reset_index(drop=True)
+models = [
+    Naive(),
+    HistoricAverage(),
+    WindowAverage(window_size=7),
+    SeasonalNaive(season_length=7),
+    AutoARIMA(seasonal=False, alias="ARIMA"),
+    AutoARIMA(season_length=7, alias="SARIMA"),
+]
+sf = StatsForecast(models=models, freq="D")
+# sf.fit(df=train)
+
+cv_df = sf.cross_validation(
+    h=horizon, df=dfCV, n_windows=8, step_size=horizon, refit=True
+)
+
+metrics = [mae, mse, rmse, mape]
+cv_eval = evaluate(cv_df.drop(columns=["cutoff"]), metrics=metrics)
+cv_summary = (
+    cv_eval.drop(columns=["unique_id"]).groupby("metric", as_index=False).mean()
+)
+print(cv_summary)
