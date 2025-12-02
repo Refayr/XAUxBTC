@@ -240,7 +240,7 @@ class Dataset:
             dfTimeSeries = self.getTicker(ticker)[["date", "ticker", column]]
             if exogenValue is not None:
                 dfTimeSeries = pandas.merge(dfTimeSeries, dfExo, how="inner", on="date")
-        dfCV = dfTimeSeries.rename(
+        dfTimeSeries = dfTimeSeries.rename(
             columns={"date": "ds", "ticker": "unique_id", column: "y"}
         )
         if exogenValue is not None:
