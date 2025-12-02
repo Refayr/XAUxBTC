@@ -227,24 +227,22 @@ class Dataset:
         exogenValue -- a ticker used as an exogen value
         ticker -- limit the dataset to only one specific ticker
         """
-        dfExo = self.getTicker(exogenValue)[["date", column]].rename(
-            columns={column: exogenValue}
-        )
+
         if ticker is None:
-            dfTimeSeries = (
-                pandas.merge(self.df, dfExo, how="inner", on="date")
-                if exogenValue is not None
-                else self.df
-            )
+            dfTimeSeries = self.df
         else:
             dfTimeSeries = self.getTicker(ticker)[["date", "ticker", column]]
-            if exogenValue is not None:
-                dfTimeSeries = pandas.merge(dfTimeSeries, dfExo, how="inner", on="date")
+
+        if exogenValue is not None:
+            dfExo = self.getTicker(exogenValue)[["date", column]].rename(
+                columns={column: exogenValue}
+            )
+            dfTimeSeries = dfTimeSeries[dfTimeSeries["ticker"] != exogenValue]
+            dfTimeSeries = pandas.merge(dfTimeSeries, dfExo, how="inner", on="date")
+
         dfTimeSeries = dfTimeSeries.rename(
             columns={"date": "ds", "ticker": "unique_id", column: "y"}
         )
-        if exogenValue is not None:
-            dfTimeSeries = dfTimeSeries[dfTimeSeries["unique_id"] != exogenValue]
 
         return dfTimeSeries
 
