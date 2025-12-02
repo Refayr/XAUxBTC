@@ -220,6 +220,34 @@ class Dataset:
 
         return corrMatrix
 
+    def toTimeSeries(self, column, exogenValue="XAU", ticker=None):
+        """Prepare the dataset to be usable with a Time Series algorithm, i.e. with columns "ds" (as "date"), "unique_id" (as "ticker") and "y"
+
+        column -- column used as the "y" column
+        exogenValue -- a ticker used as an exogen value
+        ticker -- limit the dataset to only one specific ticker
+        """
+        dfExo = self.getTicker(exogenValue)[["date", column]].rename(
+            columns={column: exogenValue}
+        )
+        if ticker is None:
+            dfTimeSeries = (
+                pandas.merge(self.df, dfExo, how="inner", on="date")
+                if exogenValue is not None
+                else self.df
+            )
+        else:
+            dfTimeSeries = self.getTicker(ticker)[["date", "ticker", column]]
+            if exogenValue is not None:
+                dfTimeSeries = pandas.merge(dfTimeSeries, dfExo, how="inner", on="date")
+        dfCV = dfTimeSeries.rename(
+            columns={"date": "ds", "ticker": "unique_id", column: "y"}
+        )
+        if exogenValue is not None:
+            dfTimeSeries = dfTimeSeries[dfTimeSeries["unique_id"] != exogenValue]
+
+        return dfTimeSeries
+
     def dropTickers(self, keep):
         """Drop all the tickers that are not in the list
 

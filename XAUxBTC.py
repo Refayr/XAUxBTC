@@ -1,7 +1,6 @@
 import random
 import matplotlib.pyplot as plt
 import seaborn
-import pandas
 from utilsforecast.evaluation import evaluate
 from utilsforecast.losses import *
 from statsforecast import StatsForecast
@@ -352,17 +351,7 @@ print(f"{len(tickers)} selected tickers: {tickers}")
 
 # TODO: machine learning (time based)
 print("\nTime series Forecasting...")
-# TODO: Only BTC is taken, need to use every tickers with added "XAU" as exogenous variable
-dfCV = data.getTicker("BTC")[["date", "ticker", "closeNormalized"]]
-dfXAU = data.getTicker("XAU")[["date", "closeNormalized"]].rename(
-    columns={"closeNormalized": "XAU"}
-)
-# dfCV = pandas.merge(dfCV, dfXAU, how="inner", on="date")
-dfCV = pandas.merge(data.df, dfXAU, how="inner", on="date")
-dfCV = dfCV.rename(
-    columns={"date": "ds", "ticker": "unique_id", "closeNormalized": "y"}
-)
-dfCV = dfCV[dfCV["unique_id"] != "XAU"]
+dfCV = data.toTimeSeries(column="closeNormalized", exogenValue="XAU")
 dfCV.to_csv("timeseries.csv")
 print(dfCV.head)
 horizon = 7
