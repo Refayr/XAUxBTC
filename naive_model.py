@@ -9,8 +9,12 @@ from statsforecast import StatsForecast
 from utilsforecast.losses import mae, mse, rmse, mape
 from sklearn.metrics import mean_squared_error
 
-'''
+
+
 #Backup dataset
+print("\n" + "="*70)
+print("Generate Real Dataset")
+print("="*70)
 import yfinance as yf
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -19,7 +23,7 @@ ticker_list=['GC=F','BTC-USD','TRX-USD','BNB-USD','LEO-USD','GT-USD','SUN-USD','
 
 frames = []
 for i in ticker_list:
-    df=yf.download(i,start='2022-01-04',end='2024-12-04')
+    df=yf.download(i,start='2022-05-16',end='2024-12-09')
     df=df[['Close']]
     base = i.split('-')[0]  
     df=df.rename(columns={'Close':base})
@@ -41,7 +45,7 @@ df = df.reset_index().melt(id_vars='Date', var_name='Ticker', value_name='Price'
 df = df.sort_values(['Date', 'Ticker']).reset_index(drop=True)
 
 #Remove na
-df = df.dropna()
+#df = df.dropna()
 
 # Replace GC=F with xAu
 df['Ticker'] = df['Ticker'].replace('GC=F', 'xAU')
@@ -88,10 +92,26 @@ crypto_cols = [col for col in df_wide.columns if col not in ['ds', 'xAU']]
 
 print(f"\nCrypto columns to add: {crypto_cols}")
 
+df_au = df_wide[['ds','xAU']] 
+df_au["unique_id"]="XAU"
+df_au = df_au.rename(columns={'xAU': 'y'})
 
-'''
+print(df_au.head())
+df_au['ds'] = pd.to_datetime(df_au['ds'])
+
+df_au['y'] = df_au['y'].interpolate(method='linear')
+print(df_au.isnull().sum())
+
+print("Real gold dataset generated -- df_au")
+
+##### End of dataset backup
+
+
 # Load data
-df = pd.read_csv("20251201_timeseries.csv")
+print("\n" + "="*70)
+print("Generate Normalized Dataset")
+print("="*70)
+df_norm = pd.read_csv("20251201_timeseries.csv")
 
 # Keep tickers only have correlation > 80%
 #tickers=['XAU', 'TRX', 'BTC', 'BNB', 'LEO', 'GT', 'SUN', 'OKB', 'XRP']
@@ -109,15 +129,17 @@ from statsforecast import StatsForecast
 from statsforecast.models import Naive, SeasonalNaive, HistoricAverage, WindowAverage, AutoARIMA
 import matplotlib.pyplot as plt
 
-df_au = df[["ds"]]
-df_au["unique_id"]="XAU"
-df_au["y"]=df["XAU"]
-df_au = df_au.drop_duplicates(subset=['ds'])
-df_au = df_au.reset_index(drop=True)
+df_au_norm = df_norm[["ds"]]
+df_au_norm["unique_id"]="XAU"
+df_au_norm["y"]=df_norm["XAU"]
+df_au_norm = df_au_norm.drop_duplicates(subset=['ds'])
+df_au_norm = df_au_norm.reset_index(drop=True)
 
 
-print(df_au.head())
-df_au['ds'] = pd.to_datetime(df_au['ds'])
+print(df_au_norm.head())
+df_au_norm['ds'] = pd.to_datetime(df_au_norm['ds'])
+print("Normalized gold daataset generated -- df_au_norm")
+
 
 # Set forecast horizon
 horizon = 30
@@ -612,7 +634,7 @@ print(f"\nExogenous features shape: {exog_df.shape}")
 print(f"Future exogenous features shape: {futr_exog_df.shape}")
 
 
-df_wide = df.pivot(index='ds', columns='unique_id', values='y')
+df_wide = df_norm.pivot(index='ds', columns='unique_id', values='y')
 print(df_wide.head())
 
 df_wide = df_wide.reset_index()
@@ -703,10 +725,6 @@ print("="*70)
 sf_cv = StatsForecast(models=models_exogf, freq="D", n_jobs=-1)
 
 # Apply time-series cross-validation
-#     - h = 30 → each test window covers 30 days (forecast horizon)
-#     - n_windows = 5 → number of rolling evaluation windows
-#     - step_size = 30 → after each CV step, move forward 30 days
-#     - refit = True → retrain models at each step (more realistic evaluation)
 
 n_windows = 5
 step_size = horizon
@@ -835,6 +853,8 @@ print("✓ Lag features created")
 df_lr = df_lr.dropna()
 print(f"✓ Data shape after feature engineering: {df_lr.shape}")
 
+print(df_lr.head())
+
 # ============================================================================
 # STEP 2: PREPARE TRAIN/TEST SPLITS
 # ============================================================================
@@ -842,8 +862,8 @@ print(f"✓ Data shape after feature engineering: {df_lr.shape}")
 print("\nPreparing train/test splits...")
 
 # Get the same train/test indices as before
-train_lr = df_lr.loc[train_exogf.index].dropna()
-test_lr = df_lr.loc[test_exogf.index].dropna()
+train_lr = df_lr.groupby("unique_id").tail(horizon)
+test_lr = df_lr.drop(test.index).reset_index(drop=True)
 
 print(f"Train shape: {train_lr.shape}")
 print(f"Test shape: {test_lr.shape}")
@@ -1071,7 +1091,7 @@ comparison_data = {
     'MAPE (%)': [lr_mape, ridge_mape]
 }
 
-# Add ARIMA/SARIMA if available
+# Add ARIMA/SARIMA
 if 'split_evaluation' in locals() or 'split_evaluation' in globals():
     try:
         arima_metrics = split_evaluation[split_evaluation['metric'] == 'mae']['ARIMA'].values[0]
