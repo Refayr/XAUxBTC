@@ -683,6 +683,8 @@ split_preds = sf_split.predict(h=horizon, X_df=test_exogf_X)
 
 # Evaluate
 split_eval_df = pd.merge(test_exogf, split_preds, how='left', on=['ds', 'unique_id'])
+eval_columns = ['ds', 'unique_id', 'y', 'ARIMA', 'SARIMA']
+split_eval_df_clean = split_eval_df[eval_columns]
 
 metrics = [mae, mse, rmse, mape]
 
