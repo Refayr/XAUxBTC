@@ -6,8 +6,17 @@ from utilsforecast.losses import *
 from statsforecast import StatsForecast
 from statsforecast.models import Naive, HistoricAverage, WindowAverage, SeasonalNaive
 from statsforecast.models import AutoARIMA
+from sklearn.linear_model import LinearRegression
 from dataset import Dataset
 from dataset import DatasetProvider
+
+
+class DebugConfig:
+    localFile = "dataset.csv"
+    preprocessing = True  # ~16s (local mode)
+    tickerSelection = True  # ~4s
+    forecast = True  # ~5min
+    forecastMethod = "ARIMA"  # "ARIMA" or "Multivariate linear regression"
 
 
 # Define a random color list
@@ -237,9 +246,8 @@ data = Dataset(columns={"ticker", "date", "close"})
 data.setDateFormat("yyyy-mm-dd")
 
 # Don't download the dataset and use the local .csv to gain time if localFile==True
-localFile = True
-if localFile:
-    data.addDataset(source=DatasetProvider.CSV, file="dataset.csv")
+if DebugConfig.localFile is not None:
+    data.addDataset(source=DatasetProvider.CSV, file=DebugConfig.localFile)
 else:
     for csvFile in csvFiles:
         data.addDataset(
@@ -264,117 +272,125 @@ else:
 
 
 data.normalize("close")
-data.exportDataset("csv")
+if DebugConfig.localFile is None:
+    data.exportDataset("csv")
 print(data.df.head)
 
 
-# First correlation matrices to select the most relevant tickers before preprocessing
-column = "closeNormalized"
+if DebugConfig.preprocessing:
+    # First correlation matrices to select the most relevant tickers before preprocessing
+    column = "closeNormalized"
 
-methods = ["pearson", "kendall", "spearman"]
-minCorr = 0.65
-maxCorr = 0.99
+    methods = ["pearson", "kendall", "spearman"]
+    minCorr = 0.65
+    maxCorr = 0.99
 
-tickers = ["XAU"]
+    tickers = ["XAU"]
 
-corrMatrices = []
-for method in methods:
-    corrMatrices.append(
-        data.corr(values=column, method=method, min=minCorr, max=maxCorr)
+    corrMatrices = []
+    for method in methods:
+        corrMatrices.append(
+            data.corr(values=column, method=method, min=minCorr, max=maxCorr)
+        )
+        if not corrMatrices[-1].empty:
+            tickers.extend(corrMatrices[-1].T.index.tolist())
+    drawCorrelationMatricesAndPlot(corrMatrices, methods, minCorr, data.df, column)
+
+    # Keep unique ticker names
+    tickers = list(set(tickers))
+    print(tickers)
+
+    data.df = data.dropTickers(keep=tickers)
+    data.trimDates()
+    # Remove all data after the hole from 2024-12-10 to 2025-01-26
+    data.end = "2024-12-09"
+    data.df = data.df[data.df["date"] <= data.end]
+    data.normalize("close")
+    # print(data.df.columns.tolist())
+    # print(data.df.head)
+    data.exportDataset("csv", "dataset_reduced.csv")
+
+
+if DebugConfig.tickerSelection:
+    # Now we have only the most relevant tickers in the dataset, with the same time period
+
+    # data2 = Dataset(columns={"ticker", "date", "close"})
+    # data2.setDateFormat("yyyy-mm-dd")
+    # data2.start = data.start
+    # data2.end = data.end
+    # for ticker in tickers:
+    #    if ticker != "XAU":
+    #        data2.addDataset(source=DatasetProvider.YAHOO, file=ticker, ticker=ticker)
+    # data2.addDataset(
+    #    source=DatasetProvider.KAGGLE,
+    #    repo="isaaclopgu/gold-historical-data-daily-updated",
+    #    file="Gold_Spot_historical_data.csv",
+    #    ticker="XAU",
+    # )
+    # data2.trimDates()
+    # data2.normalize("close")
+    # data2.exportDataset("csv", "dataset_reduced.csv")
+
+    # Second correlation matrices computation with usable values (the dataset is preprocessed)
+    column = "closeNormalized"
+
+    methods = ["pearson", "kendall", "spearman"]
+    minCorr = 0.65
+    maxCorr = 0.99
+
+    tickers = ["XAU"]
+
+    corrMatrices = []
+    for method in methods:
+        corrMatrices.append(
+            data.corr(values=column, method=method, min=minCorr, max=maxCorr)
+        )
+        if not corrMatrices[-1].empty:
+            tickers.extend(corrMatrices[-1].T.index.tolist())
+    drawCorrelationMatricesAndPlot(corrMatrices, methods, minCorr, data.df, column)
+
+    print(data.df.head)
+    # Keep unique ticker names
+    tickers = list(set(tickers))
+    print(f"{len(tickers)} selected tickers: {tickers}")
+    # print(f"{data.df.shape[0]} rows x {data.df.shape[1]} columns")
+
+
+if DebugConfig.forecast:
+    # TODO: machine learning (time based)
+    print("\nTime series Forecasting...")
+    dfCV = data.toTimeSeries(column="closeNormalized", exogenValue="XAU")
+    dfCV.to_csv("timeseries.csv")
+    print(dfCV.head)
+    horizon = 7
+    test = dfCV.tail(7)
+    train = dfCV.drop(test.index).reset_index(drop=True)
+    if DebugConfig.forecastMethod == "ARIMA":
+        models = [
+            Naive(),
+            HistoricAverage(),
+            WindowAverage(window_size=7),
+            SeasonalNaive(season_length=7),
+            AutoARIMA(seasonal=False, alias="ARIMA"),
+            AutoARIMA(season_length=7, alias="SARIMA"),
+        ]
+    elif DebugConfig.forecastMethod == "Multivariate linear regression":
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
+
+        mlr_model = LinearRegression()
+        mlr_model.fit(X_scaled, y)
+
+    sf = StatsForecast(models=models, freq="D")
+    # sf.fit(df=train)
+
+    cv_df = sf.cross_validation(
+        h=horizon, df=dfCV, n_windows=8, step_size=horizon, refit=True
     )
-    if not corrMatrices[-1].empty:
-        tickers.extend(corrMatrices[-1].T.index.tolist())
-drawCorrelationMatricesAndPlot(corrMatrices, methods, minCorr, data.df, column)
 
-# Keep unique ticker names
-tickers = list(set(tickers))
-print(tickers)
-
-
-data.df = data.dropTickers(keep=tickers)
-data.trimDates()
-# Remove all data after the hole from 2024-12-10 to 2025-01-26
-data.end = "2024-12-09"
-data.df = data.df[data.df["date"] <= data.end]
-data.normalize("close")
-# print(data.df.columns.tolist())
-# print(data.df.head)
-data.exportDataset("csv", "dataset_reduced.csv")
-
-
-# Now we have only the most relevant tickers in the dataset, with the same time period
-
-
-# data2 = Dataset(columns={"ticker", "date", "close"})
-# data2.setDateFormat("yyyy-mm-dd")
-# data2.start = data.start
-# data2.end = data.end
-# for ticker in tickers:
-#    if ticker != "XAU":
-#        data2.addDataset(source=DatasetProvider.YAHOO, file=ticker, ticker=ticker)
-# data2.addDataset(
-#    source=DatasetProvider.KAGGLE,
-#    repo="isaaclopgu/gold-historical-data-daily-updated",
-#    file="Gold_Spot_historical_data.csv",
-#    ticker="XAU",
-# )
-# data2.trimDates()
-# data2.normalize("close")
-# data2.exportDataset("csv", "dataset_reduced.csv")
-
-
-# Second correlation matrices computation with usable values (the dataset is preprocessed)
-column = "closeNormalized"
-
-methods = ["pearson", "kendall", "spearman"]
-minCorr = 0.65
-maxCorr = 0.99
-
-tickers = ["XAU"]
-
-corrMatrices = []
-for method in methods:
-    corrMatrices.append(
-        data.corr(values=column, method=method, min=minCorr, max=maxCorr)
+    metrics = [mae, mse, rmse, mape]
+    cv_eval = evaluate(cv_df.drop(columns=["cutoff"]), metrics=metrics)
+    cv_summary = (
+        cv_eval.drop(columns=["unique_id"]).groupby("metric", as_index=False).mean()
     )
-    if not corrMatrices[-1].empty:
-        tickers.extend(corrMatrices[-1].T.index.tolist())
-drawCorrelationMatricesAndPlot(corrMatrices, methods, minCorr, data.df, column)
-
-
-print(data.df.head)
-# Keep unique ticker names
-tickers = list(set(tickers))
-print(f"{len(tickers)} selected tickers: {tickers}")
-# print(f"{data.df.shape[0]} rows x {data.df.shape[1]} columns")
-
-
-# TODO: machine learning (time based)
-print("\nTime series Forecasting...")
-dfCV = data.toTimeSeries(column="closeNormalized", exogenValue="XAU")
-dfCV.to_csv("timeseries.csv")
-print(dfCV.head)
-horizon = 7
-test = dfCV.tail(7)
-train = dfCV.drop(test.index).reset_index(drop=True)
-models = [
-    Naive(),
-    HistoricAverage(),
-    WindowAverage(window_size=7),
-    SeasonalNaive(season_length=7),
-    AutoARIMA(seasonal=False, alias="ARIMA"),
-    AutoARIMA(season_length=7, alias="SARIMA"),
-]
-sf = StatsForecast(models=models, freq="D")
-# sf.fit(df=train)
-
-cv_df = sf.cross_validation(
-    h=horizon, df=dfCV, n_windows=8, step_size=horizon, refit=True
-)
-
-metrics = [mae, mse, rmse, mape]
-cv_eval = evaluate(cv_df.drop(columns=["cutoff"]), metrics=metrics)
-cv_summary = (
-    cv_eval.drop(columns=["unique_id"]).groupby("metric", as_index=False).mean()
-)
-print(cv_summary)
+    print(cv_summary)
