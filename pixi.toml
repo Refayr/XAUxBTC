@@ -1,0 +1,23 @@
+[workspace]
+channels = ["conda-forge"]
+name = "datasciences"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+python = ">=3.10,<3.11"
+numpy = ">=1.19.5,<2"
+matplotlib = ">=3.5.3,<4"
+scipy = ">=1.9.1,<2"
+seaborn = ">=0.12.2,<0.13"
+kagglehub = ">=0.3.8,<0.4"
+pandas = ">=1.4.4,<2"
+yfinance = ">=0.2.18,<0.3"
+statsforecast = ">=2.0.3,<3"
+utilsforecast = ">=0.2.14,<0.3"
+scikit-learn = ">=1.7.2,<2"
+
+[pypi-dependencies]
+#gdown = ">=5.2.0, <6"
