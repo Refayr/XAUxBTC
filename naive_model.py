@@ -4,10 +4,25 @@ import matplotlib.pyplot as plt
 
 from utilsforecast.evaluation import evaluate
 from statsforecast import StatsForecast
+from statsforecast.models import (
+    Naive,
+    SeasonalNaive,
+    HistoricAverage,
+    WindowAverage,
+    AutoARIMA,
+)
 
 from utilsforecast.losses import mae, mse, rmse, mape
 from sklearn.metrics import mean_squared_error
 
+from utilsforecast.feature_engineering import pipeline, time_features
+from functools import partial
+
+from pandas.tseries.holiday import USFederalHolidayCalendar
+
+from sklearn.linear_model import LinearRegression, Ridge
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error
 
 # Backup dataset
 print("\n" + "=" * 70)
@@ -71,14 +86,18 @@ df_long = df.reset_index()
 
 print("Original long format:")
 print(df_long.head())
-print(f"Columns: {df_long.columns.tolist()}")
+
+print("Columns: ", df_long.columns.tolist())
+
 
 # Step 2: Pivot to wide format (each ticker becomes a column)
 df_wide = df_long.pivot(index="ds", columns="unique_id", values="y")
 
 print("\nAfter pivoting to wide format:")
 print(df_wide.head())
-print(f"Columns: {df_wide.columns.tolist()}")
+
+print('Columns:' ,df_wide.columns.tolist())
+
 
 # Step 3: Reset index to make Date a regular column again
 df_wide = df_wide.reset_index()
@@ -86,7 +105,8 @@ df_wide = df_wide.reset_index()
 
 print("\nAfter cleaning column names:")
 print(df_wide.head())
-print(f"Columns: {df_wide.columns.tolist()}")
+print('Columns:' ,df_wide.columns.tolist())
+
 
 # Step 6: Get list of crypto columns (all except ds and xAU)
 crypto_cols = [col for col in df_wide.columns if col not in ["ds", "xAU"]]
@@ -122,13 +142,7 @@ df_norm = pd.read_csv("20251201_timeseries.csv")
 # df = df[(df['date'] >= '2023-01-01') & (df['date'] <= '2025-06-01')]
 
 
-from statsforecast.models import (
-    Naive,
-    SeasonalNaive,
-    HistoricAverage,
-    WindowAverage,
-    AutoARIMA,
-)
+
 
 df_au_norm = df_norm[["ds"]]
 df_au_norm["unique_id"] = "XAU"
@@ -656,8 +670,6 @@ print("ANALYSIS COMPLETE!")
 print("=" * 70)
 
 
-from utilsforecast.feature_engineering import pipeline, time_features
-from functools import partial
 
 # Define time features: day of week, week of year, month of year
 time_feature_funcs = [partial(time_features, features=["day", "week", "month"])]
@@ -673,7 +685,7 @@ exog_df["months_since_start"] = (
     exog_df["ds"].dt.year - exog_df["ds"].min().year
 ) * 12 + (exog_df["ds"].dt.month - exog_df["ds"].min().month)
 
-from pandas.tseries.holiday import USFederalHolidayCalendar
+
 
 # US holidays (affect markets)
 cal = USFederalHolidayCalendar()
@@ -865,10 +877,6 @@ plt.show()
 SIMPLE LINEAR REGRESSION 
 """
 
-import numpy as np
-from sklearn.linear_model import LinearRegression, Ridge
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error
 
 # ============================================================================
 # STEP 1: CREATE FEATURES FOR LINEAR REGRESSION
@@ -926,11 +934,13 @@ feature_cols = [col for col in train_lr.columns if col not in exclude_cols]
 
 print(f"Number of features: {len(feature_cols)}")
 
+
 # Prepare X and y
 X_train = train_lr[feature_cols]
 y_train = train_lr["y"]
 X_test = test_lr[feature_cols]
 y_test = test_lr["y"]
+
 
 # ============================================================================
 # STEP 3: TRAIN LINEAR REGRESSION MODELS
