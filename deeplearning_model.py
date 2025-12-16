@@ -388,7 +388,7 @@ axes[1].legend()
 axes[1].grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('dl_training_history.png', dpi=300, bbox_inches='tight')
+plt.savefig('results/dl_training_history.png', dpi=300, bbox_inches='tight')
 plt.show()
 
 # Plot 2: Predictions Comparison
@@ -411,7 +411,7 @@ ax.legend(fontsize=11, loc='best')
 ax.grid(True, alpha=0.3, linestyle=':')
 plt.xticks(rotation=45)
 plt.tight_layout()
-plt.savefig('dl_predictions_comparison.png', dpi=300, bbox_inches='tight')
+plt.savefig('results/dl_predictions_comparison.png', dpi=300, bbox_inches='tight')
 plt.show()
 
 # Plot 3: Scatter Plots
@@ -440,43 +440,5 @@ axes[1].legend()
 axes[1].grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('dl_scatter_comparison.png', dpi=300, bbox_inches='tight')
+plt.savefig('results/dl_scatter_comparison.png', dpi=300, bbox_inches='tight')
 plt.show()
-
-# ========================================
-# PART 10: Save Results
-# ========================================
-
-print("\n" + "=" * 70)
-print("Saving Results")
-print("=" * 70)
-
-# Save predictions
-predictions_df = pd.DataFrame({
-    'Date': test_dates,
-    'Actual': actual_time.flatten(),
-    'LSTM_TimeOnly': pred_time.flatten(),
-    'LSTM_Time+Crypto': pred_crypto.flatten()
-})
-predictions_df.to_csv('dl_predictions.csv', index=False)
-
-# Save metrics
-results_df.to_csv('dl_metrics_comparison.csv', index=False)
-
-# Save models
-torch.save(model_time.state_dict(), 'model_time_only.pth')
-torch.save(model_crypto.state_dict(), 'model_time_crypto.pth')
-
-print("✓ Files saved:")
-print("  - dl_predictions.csv")
-print("  - dl_metrics_comparison.csv")
-print("  - dl_training_history.png")
-print("  - dl_predictions_comparison.png")
-print("  - dl_scatter_comparison.png")
-print("  - model_time_only.pth")
-print("  - model_time_crypto.pth")
-
-print("\n" + "=" * 70)
-print("✅ DEEP LEARNING ANALYSIS COMPLETE!")
-print("=" * 70)
-

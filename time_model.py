@@ -211,7 +211,7 @@ ax.legend(fontsize=11, loc="best", ncol=2, framealpha=0.9)
 ax.grid(True, alpha=0.3, linestyle=":")
 plt.xticks(rotation=45)
 plt.tight_layout()
-plt.savefig('gold_prediction_comparison.png', dpi=300, bbox_inches='tight')
+plt.savefig('results/gold_prediction_comparison.png', dpi=300, bbox_inches='tight')
 plt.show()
 
 print("✓ Plot saved as 'gold_prediction_comparison.png'")
@@ -407,7 +407,7 @@ axes[1, 1].set_ylabel('Frequency')
 axes[1, 1].grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('detailed_comparison.png', dpi=300, bbox_inches='tight')
+plt.savefig('results/detailed_comparison.png', dpi=300, bbox_inches='tight')
 plt.show()
 
 print("✓ Detailed comparison saved as 'detailed_comparison.png'")
@@ -445,7 +445,7 @@ axes[1].legend()
 axes[1].grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('scatter_comparison.png', dpi=300, bbox_inches='tight')
+plt.savefig('results/scatter_comparison.png', dpi=300, bbox_inches='tight')
 plt.show()
 
 print("✓ Scatter plot saved as 'scatter_comparison.png'")
