@@ -11,7 +11,8 @@
 //-------------------------------------
 // Optional generate titlepage image
 //
-#import "@preview/fractusist:0.1.1": *  // only for the generated images
+#import "@preview/fractusist:0.1.1": *
+// only for the generated images
 
 #let titlepage_logo = dragon-curve(
   12,
@@ -37,7 +38,7 @@
     tp_topleft: image("resources/img/ipparis.jpg", height: 1.2cm),
     tp_topright: image("resources/img/polytechnique.jpg", height: 1.5cm),
     tp_main: titlepage_logo,
-    header: image("resources/img/project-logo.svg", width: 2.5cm),
+    header: image("resources/img/crypto-actions.jpg", width: 2.5cm),
   ),
   authors: (
     (
@@ -89,5 +90,6 @@
 #let bib = (
   display: true,
   path: "/tail/bibliography.bib",
-  style: "ieee", //"apa", "chicago-author-date", "chicago-notes", "mla"
+  style: "ieee",
+  //"apa", "chicago-author-date", "chicago-notes", "mla"
 )

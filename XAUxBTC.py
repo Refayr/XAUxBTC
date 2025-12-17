@@ -353,6 +353,8 @@ if DebugConfig.tickerSelection:
     # Keep unique ticker names
     tickers = list(set(tickers))
     print(f"{len(tickers)} selected tickers: {tickers}")
+    data.df = data.dropTickers(keep=tickers)
+    data.exportDataset("csv", "dataset_reduced.csv")
     # print(f"{data.df.shape[0]} rows x {data.df.shape[1]} columns")
 
 

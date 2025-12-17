@@ -19,11 +19,10 @@
 // Content
 //
 #include "/main/01-intro.typ"
-#include "/main/02-specification.typ"
-#include "/main/03-design.typ"
-#include "/main/04-implementation.typ"
-#include "/main/05-validation.typ"
-#include "/main/06-conclusion.typ"
+#include "/main/02-method.typ"
+#include "/main/03-result.typ"
+#include "/main/04-analysis.typ"
+#include "/main/05-conclusion.typ"
 
 #heading(numbering: none, outlined: false)[] <sec:end>
 
@@ -45,6 +44,7 @@
     #pagebreak()
     #counter(heading).update(0)
     #set heading(numbering: "A")
+
     = #i18n("appendix-title") <sec:appendix>
     //#include "tail/a-appendix.typ"
   ]
