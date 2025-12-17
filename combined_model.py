@@ -12,6 +12,21 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
+def set_seed(seed=42):
+    import random
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    import os
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    print(f"✓ Random seed set to {seed}")
+
+set_seed(42)
+
+
 print("\n" + "=" * 70)
 print("ARIMA + LSTM ENSEMBLE MODEL COMPARISON")
 print("Combining statistical and deep learning approaches")
