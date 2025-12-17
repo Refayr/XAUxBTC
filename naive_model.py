@@ -20,6 +20,7 @@ print("Load dataset for forecasting")
 print("=" * 70)
 
 df_au = pd.read_csv("model_datasets/gold_raw.csv")
+df_au["ds"] = pd.to_datetime(df_au["ds"])
 
 
 # Set forecast horizon
