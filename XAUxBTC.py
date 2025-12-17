@@ -88,7 +88,7 @@ def drawCorrelationMatricesAndPlot(corrMatrices, methods, minCorr, df, column):
                 ax=axes[i, 0],
             )
             axes[i, 0].set_title(
-                f"Most correlated (>{minCorr * 100:.0f}%) wrt {methods[i]}",
+                f"Most correlated (>{minCorr * 100:.0f}%) wrt {methods[i].capitalize()}",
                 fontsize=14,
                 fontweight="bold",
                 pad=20,
@@ -191,7 +191,7 @@ csvFiles = [
     "LPT.csv",
     "LTC.csv",
     "MANA.csv",
-    # "MINA.csv",  # Bronken link
+    # "MINA.csv",  # Broken link
     "MX.csv",
     "NEAR.csv",
     "NEO.csv",
