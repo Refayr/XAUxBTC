@@ -29,7 +29,7 @@
     columns: (1fr, auto),
     align: (left, right),
     "Content",
-    image("resources/img/goldcrypto.png", width: 50pt)
+    image("../resources/img/goldcrypto.png", width: 50pt)
   )
 ])
 
