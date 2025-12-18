@@ -24,6 +24,14 @@
   date: "19/19/2025",
   theme: "light",
 )
+#outline(title: [
+  #grid(
+    columns: (1fr, auto),
+    align: (left, right),
+    "Content",
+    image("resources/img/goldcrypto.png", width: 50pt)
+  )
+])
 
 #outline(title: "Content")
 
