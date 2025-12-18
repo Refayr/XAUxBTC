@@ -25,18 +25,15 @@
   theme: "light",
 )
 
-/// A fancy table of contents with custom layout (optional)
 #outline(title: "Content")
-
-/// Everything below here is just a demo, erase it and create your own slides. Good luck!
 
 = Method
 
 == Method
 
-- On va être impactant
-- Faut toujours 3 points
-- J'ai appris ça en semcom (j'ai validé)
+- Tickers with >65% of correlation with gold (from Kaggle and Yahoo! Finance)
+- Date ranges from 16/05/2022 to 09/12/2024 (hole in dataset from 10/12/2024)
+- Tickers are exogenous data for gold time series
 
 #v(1cm)
 Un espace vertical pour aérer le tout. Et maintenant une grille avec deux éléments (ici, des tableaux):
@@ -64,14 +61,10 @@ Un espace vertical pour aérer le tout. Et maintenant une grille avec deux élé
 = Result
 
 == Result
-// Quick fix dégueu pour les titres sur plusieurs lignes : il faut réinsérer de l'espace à la main.
-// Pour que l'espacement entre le contenu et le filet soit le même que pour les autres slides,
-// il faut mettre un espacement de 65pt / 2 * (n-1) où n est le nombre total de lignes du titre.
-#v(65pt / 2)
 Mon dieu, qu'ai-je fait ?
 
 == Conclusion
 
-#align(center + horizon, text(size: 40pt, "Waouh on a bien bossé."))
+#align(center + horizon, text(size: 40pt, "Correlation but hard to predict gold exchange rate."))
 
-#align(center, text(fill: template.PALETTE.gold, "Merci de votre attention."))
+#align(center, text(fill: template.PALETTE.gold, "Question time!"))
