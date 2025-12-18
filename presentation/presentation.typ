@@ -18,17 +18,35 @@
 /// - date
 /// - theme: "light" or "dark"
 /// - background-image: should be `image("path/to/image.png", width: 100%, height: 100%)` if provided
+
+
 #template.cover(
   title: "Gold and cryptocurrencies exchange rates correlation",
-  speaker: "Zhousiying Wu, Nicolas Valety",
-  date: "19/19/2025",
+  speaker: [
+    #grid(
+      columns: (1fr, auto),
+      [Zhousiying Wu, Nicolas Valety],
+      [
+        #box[
+          #image("../report/resources/img/goldcrypto.png", width: 150pt)
+          #place(top + right, dx: 5pt, dy: -5pt)[
+            #text(size: 100pt, fill: red)[?]
+          ]
+        ]
+      ]
+    )
+  ],
+  date: "19/12/2025",
   theme: "light",
 )
+
+
 #outline(title: [
   #grid(
     columns: (1fr, auto),
     align: (left, right),
     "Content",
+    #pause
     image("../resources/img/goldcrypto.png", width: 50pt)
   )
 ])
