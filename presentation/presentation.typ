@@ -87,7 +87,72 @@ Un espace vertical pour aérer le tout. Et maintenant une grille avec deux élé
 = Result
 
 == Result
-Mon dieu, qu'ai-je fait ?
+#grid(
+  columns: (1fr, 1fr),
+  rows: (auto, auto, auto),
+  gutter: 10pt,
+  align: (center, center),
+  
+  // Row 1: Tables
+  [
+    #figure(
+      text(size: 8pt)[
+        #table(
+          columns: 4,
+          stroke: none,
+          align: (left + horizon),
+          table.vline(x: 1, start: 0, end: 5, stroke: 0.5pt), 
+          table.header([*Model*], [*MAE*], [*RMSE*], [*$R^2$*]),
+          table.hline(stroke: 0.5pt),                         
+          [ARIMA_TimeOnly], [45.66], [61.00], [-0.358],                                           
+          table.hline(stroke: 0.5pt), 
+          [LSTM_TimeOnly], [540.974], [543.786], [-106.889],                 
+          table.hline(stroke: 0.5pt), 
+          [Ensemble_Avg_TimeOnly], [278.607], [284.345], [-28.499],                  
+          table.hline(stroke: 0.5pt),
+          [Ensemble_Weighted_TimeOnly], [60.585], [81.713], [-1.436],
+        )
+      ],
+      caption: text(size: 9pt)["Time-Only Dataset Result"],
+    )
+  ],
+  [
+    #figure(
+      text(size: 8pt)[
+        #table(
+          columns: 4,
+          stroke: none,
+          align: (left + horizon),
+          table.vline(x: 1, start: 0, end: 5, stroke: 0.5pt), 
+          table.header([*Model*], [*MAE*], [*RMSE*], [*$R^2$*]),
+          table.hline(stroke: 0.5pt),                         
+          [ARIMA_Time+Crypto], [47.485], [58.477], [-0.248],                                           
+          table.hline(stroke: 0.5pt), 
+          [LSTM_Time+Crypto], [59.376], [70.860], [0.0239],                   
+          table.hline(stroke: 0.5pt), 
+          [Ensemble_Avg_Time+Crypto], [43.320], [57.908], [-0.223],                   
+          table.hline(stroke: 0.5pt),
+          [Ensemble_Weighted_Time+Crypto], [42.270], [57.227], [-0.195],
+        )
+      ],
+      caption: text(size: 9pt)["Time + Crypto Dataset Result"],
+    )
+  ],
+  
+  // Row 2: Images  
+  [
+    #figure(
+      image("/img/ensemble_time_only.png", width: 90%),
+      caption: text(size: 9pt)["Time-only models visualization"],
+    )
+  ],
+  [
+    #figure(
+      image("/img/ensemble_time_crypto.png", width: 90%),
+      caption: text(size: 9pt)["Time+crypto models visualization"],
+    )
+  ]
+)
 
 == Conclusion
 
