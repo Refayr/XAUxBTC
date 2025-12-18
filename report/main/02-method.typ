@@ -4,21 +4,48 @@
 
 = Method
 
-#option-style(type: option.type)[
-  This chapter defines the project requirements and presents the theoretical background. If applicable, it should also include a *State of the art* review to compare existing solutions and justify the chosen approach.
+== Libraries used
+#rocketbox()[NumPy, KaggleHub, YFinance and Pandas are directly handled by the Dataset class]
+- NumPy (>=1.19.5): array manipulation
+- Pandas (>=1.4.4): dataset (dataframe) manipulation
+- MatPlotLib (>=3.5.3): plotting graphs on the screen
+- Seaborn (>=0.12.2): extends MatPlotLib in order to draw correlation matrices
+- SciPy (>=1.9.1): base package for every Scikit libraries
+- Scikit-Learn (1.7.2): toolkit used to scale our dataset and to use some metrics during tests
+- StatsForecast (>=2.0.3): machine learning (used for the AutoARIMA model)
+- PyTorch (>=2.9.1): machine learning (used for the LSTM model)
+- UtilsForecast (>=0.2.14): evaluation of the models
+- KaggleHub (>=0.3.8): data downloader from Kaggle without the need of an API key
+- YFinance (>=0.2.18): data downloader from Yahoo! Finance
 
-  Key elements:
-  - *Define the requirements* – What must the system/process be able to do?
-  - *Describe the architecture* – What are the key components of the solution?
-  - *Review existing solutions* – What approaches already exist? How does yours compare?
-  - *Explain design choices* – Why did you choose this approach? What alternatives were considered?
-]
+== Sources
+Dataset is composed of data scraped from two websites: Kaggle and Yahoo! Finance. Is has been processed and saved on the computer as a coma separated values (.csv) file.
+
+=== Kaggle
+- #link(
+    "https://www.kaggle.com/datasets/svaningelgem/crypto-currencies-daily-prices/data?select=BTC.csv",
+  )[Crypto cryptocurrencies daily prices]
+- #link(
+    "https://www.kaggle.com/datasets/isaaclopgu/gold-historical-data-daily-updated",
+  )[Gold historical data daily updated]
+- There are only an hundred of tickers on Kaggle and the files sometimes disappear from the remote dataset, leading us to ajust the source code because Kaggle does not release a public API usable without API key.
+- There is a strange hole in the cryptocurrencies dataset from December 10#super[th] 2024 to January 26#super[th] 2025.
+- In the other hand, the dataset for gold value is really complete and has a longer date range than the one from yfinance.
+
+=== Yahoo! Finance
+- There are much more tickers available on yfinance than on Kaggle.
+- Date range is limited.
+
+=== Local .csv file
+- Really faster loading from a local file than downloading from Internet.
+- Prevent changes of results or loss of ticker once the date range has been set up.
 
 == Requirements
 
 === Dataset restrictions
 - Due to the high number of tickers, we have only used the crytos with at least 65% of correlation with gold (whatever the method used).
-- There is a hole in the dataset downloaded from Kaggle: no data are available *between December 10th 2024 and January 26th 2025*. So the data analysis will occur from the first common date with all the interesting tickers and December 9th 2024.
+- There is a hole in the dataset downloaded from Kaggle: no data are available *between December 10#super[th] 2024 and January 26#super[th] 2025*. So the data analysis will occur from the first common date with all the interesting tickers and December 9th 2024.
+- No cryptocurrency were available before July 17#super[th] 2010 so all dates (from gold dataset) before that moment have been droped
 
 === Dataset modifications
 - In order to use a time series model, the dataset must have its columns renamed:

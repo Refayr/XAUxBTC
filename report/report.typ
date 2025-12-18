@@ -21,8 +21,7 @@
 #include "/main/01-intro.typ"
 #include "/main/02-method.typ"
 #include "/main/03-result.typ"
-#include "/main/04-analysis.typ"
-#include "/main/05-conclusion.typ"
+#include "/main/04-conclusion.typ"
 
 #heading(numbering: none, outlined: false)[] <sec:end>
 

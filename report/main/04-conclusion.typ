@@ -4,7 +4,7 @@
 
 = Conclusion
 
-#option-style(type:option.type)[
+#option-style(type: option.type)[
   This final chapter summarizes the project outcomes, comparing them with the initial objectives. It also reflects on encountered difficulties and discusses possible improvements or future developments.
 
   Key elements:
@@ -14,4 +14,5 @@
   - *Discuss future work* – What are possible improvements or next steps?
 ]
 
-#lorem(200)
+This project leads us to realise that there are a high correlation between a non-negligeable amount of cryptocurrencies and gold value.
+Therefore, predicting future gold price regarding cryptocurrencies is not that simple and even a mix of powerfull machine learning algorithm (ARIMA + LSTM) cannot give useful insight of any change in gold exchange rate.
