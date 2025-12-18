@@ -55,12 +55,12 @@ and the flactuation for gold price between a short periode will only have small 
   caption: [Visuliazition ARIMA/SARIMA],
 )
 
-Although from the table above, it seems cypto features do not improve the prediction, the error for models with time features is smaller than those with time
-features and cypto features, that because time-only model predicts near average. But when we look at the visuliazition for these models, we can see that time-model
-is basically a flat line, just like naive model. So it is not useful for trading prediction. And time+cypto model captures actual price movements, it has flactuations
-like real market price on the graph, so we think time+cypto model si more valuable even if point estimate are slightly off and have bigger error.
+Although from the table above, it seems crypto features do not improve the prediction, the error for models with time features is smaller than those with time
+features and crypto features, that because time-only model predicts near average. But when we look at the visuliazition for these models, we can see that time-model
+is basically a flat line, just like naive model. So it is not useful for trading prediction. And time+crypto model captures actual price movements, it has flactuations
+like real market price on the graph, so we think time+crypto model si more valuable even if point estimate are slightly off and have bigger error.
 
-And in time+cypto models, ARIMA is better than SARIMA. So we decided to use ARIMA and another complex model(deep learning) to do further analysis.
+And in time+crypto models, ARIMA is better than SARIMA. So we decided to use ARIMA and another complex model(deep learning) to do further analysis.
 
 #figure(
   table(
@@ -75,10 +75,10 @@ And in time+cypto models, ARIMA is better than SARIMA. So we decided to use ARIM
       [*$R^2$*],
     ),
     table.hline(stroke: 0.5pt),                         [ARIMA_TimeOnly],           [45.66],                    [61.00],
-    [-0.358],                                           table.hline(stroke: 0.5pt), [LSTM_TimeOnly],            [669.21],
-    [671.32],                                           [-163.430],                 table.hline(stroke: 0.5pt), [Ensemble_Avg_TimeOnly],
-    [342.73],                                           [347.25],                   [-42.995],                  table.hline(stroke: 0.5pt),
-    [Ensemble_Weighted_TimeOnly],                       [61.45],                    [82.27],                    [-1.470],
+    [-0.358],                                           table.hline(stroke: 0.5pt), [LSTM_TimeOnly],            [540.974],
+    [543.786],                                          [-106.889],                 table.hline(stroke: 0.5pt), [Ensemble_Avg_TimeOnly],
+    [278.607],                                          [284.345],                  [-28.499],                  table.hline(stroke: 0.5pt),
+    [Ensemble_Weighted_TimeOnly],                       [60.585],                   [81.713],                   [-1.436],
   ),
   caption: "Time-Only Dataset Result",
 )
@@ -95,13 +95,13 @@ And in time+cypto models, ARIMA is better than SARIMA. So we decided to use ARIM
       [*RMSE*],
       [*$R^2$*],
     ),
-    table.hline(stroke: 0.5pt),                         [ARIMA_TimeOnly],           [47.48],                    [58.48],
-    [-0.248],                                           table.hline(stroke: 0.5pt), [LSTM_TimeOnly],            [90.84],
-    [112.25],                                           [-3.597],                   table.hline(stroke: 0.5pt), [Ensemble_Avg_TimeOnly],
-    [55.13],                                            [74.46],                    [-1.023],                   table.hline(stroke: 0.5pt),
-    [Ensemble_Weighted_TimeOnly],                       [47.33],                    [65.94],                    [-0.586],
+    table.hline(stroke: 0.5pt),                         [ARIMA_Time+Crypto],        [47.485],                   [58.477],
+    [-0.248],                                           table.hline(stroke: 0.5pt), [LSTM_Time+Crypto],         [59.376],
+    [70.860],                                           [0.0239],                   table.hline(stroke: 0.5pt), [Ensemble_Avg_Time+Crypto],
+    [43.320],                                           [57.908],                   [-0.223],                   table.hline(stroke: 0.5pt),
+    [Ensemble_Weighted_Time+Crypto],                    [42.270],                   [57.227],                   [-0.195],
   ),
-  caption: "Time + Cypto Dataset Result",
+  caption: "Time + Crypto Dataset Result",
 )
 
 #figure(
@@ -114,5 +114,10 @@ And in time+cypto models, ARIMA is better than SARIMA. So we decided to use ARIM
   caption: [Visuliazition time+crypto models],
 )
 
-The models here are ARIMA, deep laearning and the model combined by them. Same as before the visuliazition for time-only models are all like flat line. So not useful for
-market prediction. But in time+cypto model, all models performs better.
+Overall, all of our models have negative $R^2$, which means our model are all failing. But we believe this is normal, because market trading prices themselves
+cannot be predicted by our simple models. However, our goal is to find out if crypto features can help with prediction. The models here are ARIMA, deep
+laearning and the model combined by them. Same as before the visuliazition for time-only models are all like flat line, but the models with time and crypto prices
+exhibit fluctuations similar to those in the real market. So our conclusion is crpto will improve the model.
+
+We adjust test period for ARIMA in combined model comparision(from 30 days to 60 days), and the performance improved significantly. And from the table, we found that
+weighted emsemble model is best, this aligns with our predictions, and using more complex models can improve our forecasts.

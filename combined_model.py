@@ -12,6 +12,18 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
+import os, random
+
+
+def seed_everything(seed: int = 42):
+    random.seed(seed)
+    np.random.seed(seed)
+    os.environ["PYTHONHASHSEED"] = str(seed)  # helps make hashing-based ops reproducible
+
+seed_everything(42)
+
+
+
 print("\n" + "=" * 70)
 print("ARIMA + LSTM ENSEMBLE MODEL COMPARISON")
 print("Combining statistical and deep learning approaches")
