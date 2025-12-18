@@ -87,6 +87,65 @@ Un espace vertical pour aérer le tout. Et maintenant une grille avec deux élé
 = Result
 
 == Result
+#figure(
+  table(
+    columns: 7,
+    stroke: none,
+    align: (left + horizon),
+    //inset: 3pt,
+    table.vline(x: 1, start: 0, end: 3, stroke: 0.5pt), table.header(
+      [*metric*],
+      [*Naive*],
+      [*HistoricAverage*],
+      [*WindowAverage*],
+      [*SeasonalNaive*],
+      [*ARIMA*],
+      [*SARIMA*],
+    ),
+    table.hline(stroke: 0.5pt),                         [MAE],                      [57.471655], [598.324263],  [83.421234],     [86.408374],   [71.508333],
+    [71.508333],                                        table.hline(stroke: 0.5pt), [MSE],       [4161.423763], [359019.774221], [7986.952859], [9092.011023],
+    [5916.408276],                                      [5916.408276],
+  ),
+  caption: "Baseline Model comparison",
+)
+
+#grid(
+  columns: (1fr, 1fr),
+  gutter: 20pt,
+  align: (left, center),
+  [
+    #figure(
+      table(
+        columns: 3,
+        stroke: none,
+        align: (left + horizon),
+        table.vline(x: 1, start: 0, end: 5, stroke: 0.5pt), 
+        table.header(
+          [*Model*],
+          [*MAE*],
+          [*RMSE*],
+        ),
+        table.hline(stroke: 0.5pt),                         
+        [ARIMA_TimeOnly],           [74.022], [79.428],                                           
+        table.hline(stroke: 0.5pt), 
+        [SARIMA_TimeOnly], [74.022], [79.428],                   
+        table.hline(stroke: 0.5pt),
+        [ARIMA_Crypto+Time], [92.358], [101.845],
+        table.hline(stroke: 0.5pt),                         
+        [SARIMA_Crypto+Time], [117.592], [132.474],
+      ),
+      caption: "ARIMA/SARIMA comparison between different features",
+    )
+  ],
+  [
+    #figure(
+      image("/img/gold_prediction_comparison.png", width: 100%),
+      caption: [Visualization ARIMA/SARIMA],
+    )
+  ]
+)
+
+
 #grid(
   columns: (1fr, 1fr),
   rows: (auto, auto, auto),
