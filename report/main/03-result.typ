@@ -87,9 +87,9 @@ And in time+crypto models, ARIMA is better than SARIMA. So we decided to use ARI
       [*$R^2$*],
     ),
     table.hline(stroke: 0.5pt),                         [ARIMA_TimeOnly], [45.66], [61.00], [-0.358],
-    table.hline(stroke: 0.5pt),                         [LSTM_TimeOnly], [669.21], [671.32], [-163.430],
-    table.hline(stroke: 0.5pt),                         [Ensemble_Avg_TimeOnly], [342.73], [347.25], [-42.995],
-    table.hline(stroke: 0.5pt),                         [Ensemble_Weighted_TimeOnly], [61.45], [82.27], [-1.470],
+    table.hline(stroke: 0.5pt),                         [LSTM_TimeOnly], [540.974], [543.786], [-106.889],
+    table.hline(stroke: 0.5pt),                         [Ensemble_Avg_TimeOnly], [278.607], [284.345], [-28.499],
+    table.hline(stroke: 0.5pt),                         [Ensemble_Weighted_TimeOnly], [60.585], [81.713], [-1.436],
   ),
   caption: "Time-Only Dataset Result",
 )
@@ -107,10 +107,10 @@ And in time+crypto models, ARIMA is better than SARIMA. So we decided to use ARI
       [*RMSE*],
       [*$R^2$*],
     ),
-    table.hline(stroke: 0.5pt),                         [ARIMA_Time+Crypto], [47.48], [58.48], [-0.248],
-    table.hline(stroke: 0.5pt),                         [LSTM_Time+Crypto], [90.84], [112.25], [-3.597],
-    table.hline(stroke: 0.5pt),                         [Ensemble_Avg_Time+Crypto], [55.13], [74.46], [-1.023],
-    table.hline(stroke: 0.5pt),                         [Ensemble_Weighted_Time+Crypto], [47.33], [65.94], [-0.586],
+    table.hline(stroke: 0.5pt),                         [ARIMA_Time+Crypto], [47.485], [58.477], [-0.248],
+    table.hline(stroke: 0.5pt),                         [LSTM_Time+Crypto], [59.376], [70.860], [0.0239],
+    table.hline(stroke: 0.5pt),                         [Ensemble_Avg_Time+Crypto], [43.320], [57.908], [-0.223],
+    table.hline(stroke: 0.5pt),                         [Ensemble_Weighted_Time+Crypto], [42.270], [57.227], [-0.195],
   ),
   caption: "Time + Crypto Dataset Result",
 )
@@ -132,4 +132,5 @@ cannot be predicted by our simple models. However, our goal is to find out if cr
 laearning and the model combined by them. Same as before the visuliazition for time-only models are all like flat line, but the models with time and crypto prices 
 exhibit fluctuations similar to those in the real market. So our conclusion is crpto will improve the model.
 
-We adjust test period for ARIMA in combined model comparision(from 30 days to 60 days), and the performance improved significantly.
+We adjust test period for ARIMA in combined model comparision(from 30 days to 60 days), and the performance improved significantly. And from the table, we found that 
+weighted emsemble model is best, this aligns with our predictions, and using more complex models can improve our forecasts.
