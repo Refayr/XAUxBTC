@@ -59,9 +59,9 @@
 - Tickers are exogenous data for gold time series
 
 #v(1cm)
-Un espace vertical pour aérer le tout. Et maintenant une grille avec deux éléments (ici, des tableaux):
+Correlation matrices:
 
-#grid(
+/*#grid(
   columns: (1fr, 1fr),
   align: horizon + center,
   table(
@@ -79,7 +79,20 @@ Un espace vertical pour aérer le tout. Et maintenant une grille avec deux élé
     [Saint-Pierre des Corps],
     [Montparnasse],
   ),
+)*/
+#grid(
+  columns: (1fr, 1fr, 1fr),
+  align: horizon + center,
+  image("/img/corrmat_pearson.png"), image("/img/corrmat_kendall.png"), image("/img/corrmat_spearman.png")
 )
+
+== Models
+Models used:
+- Naive model
+- ARIMA/SARIMA model
+- LTSM (deep learning)
+
+Final model: ARIMA/SARIMA + LTSM together
 
 = Result
 
@@ -211,6 +224,6 @@ Un espace vertical pour aérer le tout. Et maintenant une grille avec deux élé
 
 == Conclusion
 
-#align(center + horizon, text(size: 40pt, "Correlation but hard to predict gold exchange rate."))
+#align(center + horizon, text(size: 40pt, "High correlation found but hard to predict gold exchange rate."))
 
 #align(center, text(fill: template.PALETTE.gold, "Question time!"))
