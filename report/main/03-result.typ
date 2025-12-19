@@ -55,12 +55,9 @@ and the flactuation for gold price between a short periode will only have small 
   caption: [Visuliazition ARIMA/SARIMA],
 )
 
-Although from the table above, it seems crypto features do not improve the prediction, the error for models with time features is smaller than those with time
-features and crypto features, that because time-only model predicts near average. But when we look at the visuliazition for these models, we can see that time-model
-is basically a flat line, just like naive model. So it is not useful for trading prediction. And time+crypto model captures actual price movements, it has flactuations
-like real market price on the graph, so we think time+crypto model si more valuable even if point estimate are slightly off and have bigger error.
+Although from the table above, it seems crypto features do not improve the prediction, the error for models with time features is smaller than those with time features and crypto features, that because time-only model predicts near average. But when we look at the visuliazition for these models, we can see that time-model is basically a flat line, just like naive model. So it is not useful for trading prediction. And time+crypto model captures actual price movements, it has flactuations like real market price on the graph, so we think time+crypto model si more valuable even if point estimate are slightly off and have bigger error.
 
-And in time+crypto models, ARIMA is better than SARIMA. So we decided to use ARIMA and another complex model(deep learning) to do further analysis.
+And in time+crypto models, ARIMA is better than SARIMA. So we decided to use ARIMA and another complex model (deep learning) to do further analysis.
 
 #figure(
   table(
@@ -114,10 +111,6 @@ And in time+crypto models, ARIMA is better than SARIMA. So we decided to use ARI
   caption: [Visuliazition time+crypto models],
 )
 
-Overall, all of our models have negative $R^2$, which means our model are all failing. But we believe this is normal, because market trading prices themselves
-cannot be predicted by our simple models. However, our goal is to find out if crypto features can help with prediction. The models here are ARIMA, deep
-laearning and the model combined by them. Same as before the visuliazition for time-only models are all like flat line, but the models with time and crypto prices
-exhibit fluctuations similar to those in the real market. So our conclusion is crpto will improve the model.
+Overall, all of our models have negative $R^2$, which means our model are all failing. But we believe this is normal, because market trading prices themselves cannot be predicted by our simple models. However, our goal is to find out if crypto features can help with prediction. The models here are ARIMA, deep laearning and the model combined by them. Same as before the visuliazition for time-only models are all like flat line, but the models with time and crypto prices exhibit fluctuations similar to those in the real market. So our conclusion is crpto will improve the model.
 
-We adjust test period for ARIMA in combined model comparision(from 30 days to 60 days), and the performance improved significantly. And from the table, we found that
-weighted emsemble model is best, this aligns with our predictions, and using more complex models can improve our forecasts.
+We adjust test period for ARIMA in combined model comparision (from 30 days to 60 days), and the performance improved significantly. And from the table, we found that weighted emsemble model is best, this aligns with our predictions, and using more complex models can improve our forecasts.

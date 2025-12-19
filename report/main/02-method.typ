@@ -220,8 +220,7 @@ ARIMA/SARIMA seams to have the best results with only time based data. So we cho
 
 === Implementation
 
-- Naive model: This is chosen as a baseline, the logic here is tomorrow's price = today's price. Because gold prices fluctuate very little in the short term,
-I think this is a good benchmark.
+- Naive model: This is chosen as a baseline, the logic here is tomorrow's price = today's price. Because gold prices fluctuate very little in the short term, we think this is a good benchmark.
 - ARIMA: Because gold prices tend to revert to the mean in the long run, prices fluctuate over time, and past prices influence future prices. ARIMA can capture the linear trend and autocorrelation of gold price changes.
 - SARIMA: SARIMA and ARIMA operate on similar principles, but SARIMA incorporates seasonal patterns. Because gold prices are linked to seasonal demand (e.g., as holiday gifts or wedding jewelry) and cultural patterns (e.g., the Indian wedding season and Chinese New Year), we believe economic cycles may exist. Additionally, the seasons in mining areas also affect production, thus influencing prices.
 - Deep learning: Long Short Term Memory is a CNN that can control the information stream, and so to keep important data over long sequences of dates.

@@ -94,9 +94,60 @@ Correlation matrices:
 Models applied to time series:
 - Naive model: tomorrow = today
 - ARIMA/SARIMA model: captures linear trend of gold price changes
-- LTSM (deep learning): Long Short Term Memory (CNN) keeps important data over long time
+- LSTM (deep learning): Long Short Term Memory (CNN) keeps important data over long time
 
 Final model: ARIMA/SARIMA + LTSM together
+
+== Time series
+#figure(
+  table(
+    columns: 4,
+    stroke: none,
+    align: (left + horizon),
+    //inset: 3pt,
+    table.hline(stroke: 0.5pt),                         table.vline(x: 0, start: 0, end: 2, stroke: 0.5pt), table.vline(x: 1, start: 0, end: 2, stroke: 0.5pt),              table.vline(x: 2, start: 0, end: 2, stroke: 0.5pt),
+    table.vline(x: 3, start: 0, end: 2, stroke: 0.5pt), table.vline(x: 4, start: 0, end: 2, stroke: 0.5pt), table.header(
+      [*ds*],
+      [*exogenous tickers*],
+      [*y*],
+      [*unique_id*],
+    ),
+    table.hline(stroke: 0.5pt),                         [date],                                             [normalized price at closing time (one column for each ticker)], [gold price at closing time (in \$)],
+    [XAU],                                              table.hline(stroke: 0.5pt),
+  ),
+)
+#figure(
+  table(
+    columns: 3,
+    stroke: none,
+    align: (left + horizon),
+    //inset: 3pt,
+    table.hline(stroke: 0.5pt),                         table.vline(x: 0, start: 0, end: 2, stroke: 0.5pt), table.vline(x: 1, start: 0, end: 2, stroke: 0.5pt),
+    table.vline(x: 2, start: 0, end: 2, stroke: 0.5pt), table.vline(x: 3, start: 0, end: 2, stroke: 0.5pt), table.header(
+      [*day*],
+      [*week*],
+      [*month*],
+    ),
+    table.hline(stroke: 0.5pt),                         [day of the month],                                 [week of the year],
+    [month of the year],                                table.hline(stroke: 0.5pt),
+  ),
+)
+#figure(
+  table(
+    columns: 3,
+    stroke: none,
+    align: (left + horizon),
+    //inset: 3pt,
+    table.hline(stroke: 0.5pt),                         table.vline(x: 0, start: 0, end: 2, stroke: 0.5pt), table.vline(x: 1, start: 0, end: 2, stroke: 0.5pt),
+    table.vline(x: 2, start: 0, end: 2, stroke: 0.5pt), table.vline(x: 3, start: 0, end: 2, stroke: 0.5pt), table.header(
+      [*months_since_start*],
+      [*is_holiday*],
+      [*days_to_holiday*],
+    ),
+    table.hline(stroke: 0.5pt),                         [number of month since the first date],             [holiday with respect of US federal calendar],
+    [amount of days remaining before next holidays],    table.hline(stroke: 0.5pt),
+  ),
+)
 
 = Result
 
