@@ -786,3 +786,7 @@ def combined_model():
     print("\n" + "=" * 70)
     print("✅ ANALYSIS COMPLETE!")
     print("=" * 70)
+
+
+if __name__ == "__main__":
+    combined_model()

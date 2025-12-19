@@ -195,3 +195,7 @@ def generate_modeldata():
         print("✓ Saved features_complete.csv (MAIN DATASET)")
     except:
         print("⚠ Could not save features_complete.csv")
+
+
+if __name__ == "__main__":
+    generate_modeldata()

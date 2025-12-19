@@ -11,9 +11,12 @@ pip install yfinance statsforecast xgboost torch scikit-learn
 
 ### Step 1: Generate Datasets
 ```bash
-python generate_modeldata.py
+python main.py
 ```
 **Output:**
+- `model_datasets/dataset.csv` - full dataset downloaded from Kaggle
+- `model_datasets/dataset_reduced.csv` - dataset containing only tickers correlated with gold
+- `model_datasets/timeseries.csv` - same dataset converted to a time series with gold as an exogenous value
 - `model_datasets/gold_raw.csv` - real gold price data
 - `model_datasets/time_features.csv` - Time features only
 - `model_datasets/features_complete.csv` - Time + crypto features
@@ -47,7 +50,7 @@ python deeplearning_model.py
 - Predictions comparison
 - Answer: Do crypto features help LSTM?
 
-**Ensemble Model:**
+**Ensemble Model:** (already included in `main.py`)
 ```bash
 python combined_model.py
 ```
