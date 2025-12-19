@@ -6,17 +6,32 @@
 
 == Libraries used
 #rocketbox()[NumPy, KaggleHub, YFinance and Pandas are directly handled by the Dataset class]
-- NumPy (>=1.19.5): array manipulation
-- Pandas (>=1.4.4): dataset (dataframe) manipulation
-- MatPlotLib (>=3.5.3): plotting graphs on the screen
-- Seaborn (>=0.12.2): extends MatPlotLib in order to draw correlation matrices
-- SciPy (>=1.9.1): base package for every Scikit libraries
-- Scikit-Learn (1.7.2): toolkit used to scale our dataset and to use some metrics during tests
-- StatsForecast (>=2.0.3): machine learning (used for the AutoARIMA model)
-- PyTorch (>=2.9.1): machine learning (used for the LSTM model)
-- UtilsForecast (>=0.2.14): evaluation of the models
-- KaggleHub (>=0.3.8): data downloader from Kaggle without the need of an API key
-- YFinance (>=0.2.18): data downloader from Yahoo! Finance
+- NumPy: array manipulation
+- Pandas: dataset (dataframe) manipulation
+- MatPlotLib: plotting graphs on the screen
+- Seaborn: extends MatPlotLib in order to draw correlation matrices
+- SciPy: base package for every Scikit libraries
+- Scikit-Learn: toolkit used to scale our dataset and to use some metrics during tests
+- StatsForecast: machine learning (used for the AutoARIMA model)
+- PyTorch: machine learning (used for the LSTM model)
+- UtilsForecast: evaluation of the models
+- KaggleHub: data downloader from Kaggle without the need of an API key
+- YFinance: data downloader from Yahoo! Finance
+
+These are the version of the libraries used to develop our project:
+#raw(lang: "toml", "[dependencies]
+python = \">=3.10,<3.11\"
+numpy = \">=1.19.5,<2\"
+matplotlib = \">=3.5.3,<4\"
+scipy = \">=1.9.1,<2\"
+seaborn = \">=0.12.2,<0.13\"
+kagglehub = \">=0.3.8,<0.4\"
+pandas = \">=1.4.4,<2\"
+yfinance = \">=0.2.18,<0.3\"
+statsforecast = \">=2.0.3,<3\"
+utilsforecast = \">=0.2.14,<0.3\"
+scikit-learn = \">=1.7.2,<2\"
+pytorch = \">=2.9.1,<3\"")
 
 == Sources
 Dataset is composed of data scraped from two websites: Kaggle and Yahoo! Finance. Is has been processed and saved on the computer as a coma separated values (.csv) file.
@@ -30,7 +45,7 @@ Dataset is composed of data scraped from two websites: Kaggle and Yahoo! Finance
   )[Gold historical data daily updated]
 - There are only an hundred of tickers on Kaggle and the files sometimes disappear from the remote dataset, leading us to ajust the source code because Kaggle does not release a public API usable without API key.
 - There is a strange hole in the cryptocurrencies dataset from December 10#super[th] 2024 to January 26#super[th] 2025.
-- In the other hand, the dataset for gold value is really complete and has a longer date range than the one from yfinance.
+- In the other hand, the dataset for gold value is really complete and has a longer date range than the one from Yahoo! Finance.
 
 === Yahoo! Finance
 - There are much more tickers available on yfinance than on Kaggle.
@@ -80,6 +95,7 @@ Dataset is composed of data scraped from two websites: Kaggle and Yahoo! Finance
 )
 
 === Timeseries structure
+Time series structure contains exogenous data as follows:
 #figure(
   table(
     columns: 4,
@@ -176,16 +192,34 @@ The following tickers have more than 65% of correlation (with respect to Pierson
   caption: "Tickers correlation with gold",
 )
 
-// TODO: include pictures of the correlation matrices
 #figure(
-  image("/resources/img/correlation_matrices.png"),
-  caption: "Correlation matrices",
+  image("/resources/img/corrmat_pearson.png", width: 14cm),
+  caption: "Correlation matrix with respect to the Pearson computation",
+)
+#figure(
+  image("/resources/img/corrmat_kendall.png", width: 14cm),
+  caption: "Correlation matrix with respect to the Kendall computation",
+)
+#figure(
+  image("/resources/img/corrmat_spearman.png", width: 14cm),
+  caption: "Correlation matrix with respect to the Spearman computation",
 )
 
 == Time series
 
 === Algorithms
-With the most correlated cryptocurrencies writen as exogenous datas in the time series of gold price, we tried to predict gold price using two algorithms:
-+ ARIMA
-+ LSTM
-+ a combination of both
+With the most correlated cryptocurrencies writen as exogenous datas in the time series of gold price, we tried to predict gold price using three algorithms:
++ Naive model
++ ARIMA/SARIMA model
++ Deep learning model (LSTM)
++ a combination of the last two
+
+ARIMA/SARIMA seams to have the best results with only time based data. So we choosed to train it beside Long Short Term Memory (LSTM).
+
+=== Implementation
+
+- Naive model: This is chosen as a baseline, the logic here is tomorrow's price = today's price. Because gold prices fluctuate very little in the short term,
+I think this is a good benchmark.
+- ARIMA: Because gold prices tend to revert to the mean in the long run, prices fluctuate over time, and past prices influence future prices. ARIMA can capture the linear trend and autocorrelation of gold price changes.
+- SARIMA: SARIMA and ARIMA operate on similar principles, but SARIMA incorporates seasonal patterns. Because gold prices are linked to seasonal demand (e.g., as holiday gifts or wedding jewelry) and cultural patterns (e.g., the Indian wedding season and Chinese New Year), we believe economic cycles may exist. Additionally, the seasons in mining areas also affect production, thus influencing prices.
+- Deep learning: Long Short Term Memory is a CNN that can control the information stream, and so to keep important data over long sequences of dates.

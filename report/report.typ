@@ -28,12 +28,12 @@
 //-------------------------------------
 // Glossary
 //
-#make_glossary(gloss: gloss, title: i18n("gloss-title"))
+//#make_glossary(gloss: gloss, title: i18n("gloss-title"))
 
 //-------------------------------------
 // Bibliography
 //
-#make_bibliography(bib: bib, title: i18n("bib-title"))
+//#make_bibliography(bib: bib, title: i18n("bib-title"))
 
 //-------------------------------------
 // Appendix
