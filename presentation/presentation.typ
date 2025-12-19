@@ -87,7 +87,7 @@ Correlation matrices:
 )
 
 == Models
-Models used:
+Models applied to time series:
 - Naive model
 - ARIMA/SARIMA model
 - LTSM (deep learning)
