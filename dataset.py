@@ -10,6 +10,10 @@ import yfinance
 import enum
 import time
 
+import random
+import matplotlib.pyplot as plt
+import seaborn
+
 
 class DatasetProvider(enum.Enum):
     CSV = 1
@@ -187,7 +191,7 @@ class Dataset:
 
     # TODO: normalized over min-max method
 
-    def corr(self, values, method="pearson", min=0, max=1):
+    def corr(self, values, method="pearson", min=0, max=1, display=True):
         """Build the correlation matrix of the dataset (self.df) according to the column "values"
 
         Keyword arguments:
@@ -197,6 +201,7 @@ class Dataset:
                   "spearman" = pearson(rank(X), rank(Y))
         min -- minimal absolute value of correlation required
         max -- maximal absolution value of correlation required (to remove overfitted data)
+        display --- display correlation values
         """
         dfPivoted = self.df.pivot(index="date", columns="ticker", values=values)
         corrMatrix = dfPivoted.corr(method=method)
@@ -213,10 +218,11 @@ class Dataset:
         corrMatrix = corrMatrix.where(corrMatrix.abs() > min)
         corrMatrix = corrMatrix.where(corrMatrix.abs() < max)
         corrMatrix = corrMatrix.dropna(axis=1, how="all")
-        print(f"\nSorted Correlation Matrix > {min * 100:.0f}%")
-        print(corrMatrix)
-        for ticker in corrMatrix.columns:
-            print(f"{ticker}: {corrMatrix.at['XAU', ticker]} correlated with XAU")
+        if display:
+            print(f"\nSorted Correlation Matrix > {min * 100:.0f}%")
+            print(corrMatrix)
+            for ticker in corrMatrix.columns:
+                print(f"{ticker}: {corrMatrix.at['XAU', ticker]} correlated with XAU")
 
         return corrMatrix
 
@@ -246,6 +252,40 @@ class Dataset:
 
         return dfTimeSeries
 
+    def selectTickers(
+        self, column="closeNormalized", minCorr=0.65, maxCorr=0.99, display=True
+    ):
+        """Select the most relevant tickers according to correlation matrices with gold price
+
+        Keyword arguments:
+        column --- column used to compare tickers
+        minCorr --- minamal correlation wanted
+        maxCorr --- maximal correlation wanted
+        display --- display the correlation matrix and a plot if true
+        """
+        methods = ["pearson", "kendall", "spearman"]
+        tickers = ["XAU"]
+
+        corrMatrices = []
+        for method in methods:
+            corrMatrices.append(
+                self.corr(
+                    values=column,
+                    method=method,
+                    min=minCorr,
+                    max=maxCorr,
+                    display=display,
+                )
+            )
+            if not corrMatrices[-1].empty:
+                tickers.extend(corrMatrices[-1].T.index.tolist())
+        if display:
+            drawCorrelationMatricesAndPlot(
+                corrMatrices, methods, minCorr, self.df, column
+            )
+
+        return tickers
+
     def dropTickers(self, keep):
         """Drop all the tickers that are not in the list
 
@@ -263,3 +303,218 @@ class Dataset:
 
     def __setitem__(self, index, value):
         self.df[index] = value
+
+
+# Define a random color list
+colors = [
+    "dimgrey",
+    "rosybrown",
+    "lightcoral",
+    "red",
+    "coral",
+    "sienna",
+    "chocolate",
+    "darkorange",
+    "tan",
+    "khaki",
+    "olive",
+    "greenyellow",
+    "palegreen",
+    "darkgreen",
+    "aquamarine",
+    "lightseagreen",
+    "teal",
+    "cyan",
+    "deepskyblue",
+    "royalblue",
+    "lavender",
+    "navy",
+    "slateblue",
+    "blueviolet",
+    "plum",
+    "magenta",
+    "deeppink",
+    "crimson",
+]
+random.Random(42).shuffle(colors)
+
+
+def drawCorrelationMatricesAndPlot(corrMatrices, methods, minCorr, df, column):
+    """Draw a subplot of correlation matrices with associated plot
+
+    corrMatrices -- a list of correlation matrices
+    methods -- method names of the computation of the correlation matrices
+    minCorr -- minimal corralation percentage used in the computation of the correlation matrices
+    df -- dataframe used to plot
+    column -- column from the dataframe used in the plot (with "date")
+    """
+    fig, axes = plt.subplots(3, 2, figsize=(18, 12))
+    if len(corrMatrices) != len(methods):
+        raise (
+            Exception(
+                f"The number of correlation matrices is not the same as the number of methods to calculate them ({len(corrMatrices)}!={len(methods)})"
+            )
+        )
+
+    for i, corrMatrix in enumerate(corrMatrices):
+        axes[i, 0].clear()
+        if not corrMatrix.empty:
+            seaborn.heatmap(
+                corrMatrix,
+                annot=True,
+                annot_kws={"size": 10},
+                fmt=".2f",
+                cmap="coolwarm",
+                center=0,
+                square=True,
+                linewidths=0.5,
+                cbar_kws={"shrink": 0.8},
+                ax=axes[i, 0],
+            )
+            axes[i, 0].set_title(
+                f"Most correlated (>{minCorr * 100:.0f}%) wrt {methods[i].capitalize()}",
+                fontsize=14,
+                fontweight="bold",
+                pad=20,
+            )
+
+            for j, ticker in enumerate(corrMatrix.columns):
+                dfTicker = df[df["ticker"] == ticker]
+                axes[i, 1].plot(
+                    dfTicker["date"],
+                    dfTicker[column],
+                    marker="s",
+                    linestyle="--",
+                    linewidth=1,
+                    markersize=1,
+                    label=ticker,
+                    color=colors[j],
+                )
+            dfTicker = df[df["ticker"] == "XAU"]
+            axes[i, 1].plot(
+                dfTicker["date"],
+                dfTicker[column],
+                marker="o",
+                linestyle="-",
+                linewidth=1,
+                markersize=1,
+                label="XAU",
+                color="gold",
+            )
+            axes[i, 1].set_xlabel("dates", fontsize=12)
+            axes[i, 1].set_ylabel(f"{column} prices", fontsize=12)
+            axes[i, 1].set_title(
+                f"Gold / Cryptos comparison ({column} prices)",
+                fontsize=14,
+                fontweight="bold",
+            )
+            axes[i, 1].legend(fontsize=11)
+            axes[i, 1].grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    plt.subplots_adjust(wspace=0.3, hspace=0.3)
+    plt.show()
+
+
+# Set the path to the file you'd like to load from Kaggle's dataset
+kaggleCsvFiles = [
+    "1INCH.csv",
+    "AAVE.csv",
+    "ADA.csv",
+    "ALGO.csv",
+    "AMP.csv",
+    "APE.csv",
+    "AR.csv",
+    "ATOM.csv",
+    "AVAX.csv",
+    "AXS.csv",
+    "BAT.csv",
+    "BCH.csv",
+    "BNB.csv",
+    "BSV.csv",
+    "BTC.csv",
+    "BTT.csv",
+    "CAKE.csv",
+    "CFX.csv",
+    "CHZ.csv",
+    "COMP.csv",
+    "CRO.csv",
+    "CRV.csv",
+    "CVX.csv",
+    "DAI.csv",
+    "DASH.csv",
+    "DCR.csv",
+    "DOGE.csv",
+    "DOT.csv",
+    "DYDX.csv",
+    "EGLD.csv",
+    "ENS.csv",
+    "ETC.csv",
+    "ETH.csv",
+    "FET.csv",
+    "FIL.csv",
+    "FLOW.csv",
+    "FTT.csv",
+    "GALA.csv",
+    "GLM.csv",
+    "GNO.csv",
+    "GRT.csv",
+    "GT.csv",
+    "HBAR.csv",
+    "HNT.csv",
+    "ICP.csv",
+    "IMX.csv",
+    "INJ.csv",
+    "IOTA.csv",
+    "JST.csv",
+    "KCS.csv",
+    "KSM.csv",
+    "LDO.csv",
+    "LEO.csv",
+    "LINK.csv",
+    "LPT.csv",
+    "LTC.csv",
+    "MANA.csv",
+    "MX.csv",
+    "NEAR.csv",
+    "NEO.csv",
+    "NEXO.csv",
+    "NFT.csv",
+    "OKB.csv",
+    "POL.csv",
+    "QNT.csv",
+    "QTUM.csv",
+    "RAY.csv",
+    "RSR.csv",
+    "RUNE.csv",
+    "SAND.csv",
+    "SHIB.csv",
+    "SNX.csv",
+    "SOL.csv",
+    "STX.csv",
+    "SUN.csv",
+    "SYRUP.csv",
+    "TEL.csv",
+    "TFUEL.csv",
+    "THETA.csv",
+    "TRAC.csv",
+    "TRX.csv",
+    "TUSD.csv",
+    "TWT.csv",
+    "UNI.csv",
+    "USDC.csv",
+    "USDD.csv",
+    "USDT.csv",
+    "VET.csv",
+    "WEMIX.csv",
+    "XCN.csv",
+    "XDC.csv",
+    "XEC.csv",
+    "XLM.csv",
+    "XMR.csv",
+    "XRP.csv",
+    "XTZ.csv",
+    "YFI.csv",
+    "ZEC.csv",
+    "ZEN.csv",
+]
