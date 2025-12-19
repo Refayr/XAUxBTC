@@ -52,6 +52,10 @@
 
 = Method
 
+== Data shape
+Cryptos do not seem to be correlated to gold exchange rate:
+#image("/img/XAUxBTC.png", height: 85%)
+
 == Method
 
 - Tickers with >65% of correlation with gold (from Kaggle and Yahoo! Finance)
@@ -88,9 +92,9 @@ Correlation matrices:
 
 == Models
 Models applied to time series:
-- Naive model
-- ARIMA/SARIMA model
-- LTSM (deep learning)
+- Naive model: tomorrow = today
+- ARIMA/SARIMA model: captures linear trend of gold price changes
+- LTSM (deep learning): Long Short Term Memory (CNN) keeps important data over long time
 
 Final model: ARIMA/SARIMA + LTSM together
 

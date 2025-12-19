@@ -19,6 +19,7 @@
 - YFinance: data downloader from Yahoo! Finance
 
 These are the version of the libraries used to develop our project:
+
 #raw(lang: "toml", "[dependencies]
 python = \">=3.10,<3.11\"
 numpy = \">=1.19.5,<2\"
@@ -34,6 +35,7 @@ scikit-learn = \">=1.7.2,<2\"
 pytorch = \">=2.9.1,<3\"")
 
 == Sources
+#image("/resources/img/XAUxBTC.png", width: 7cm)
 Dataset is composed of data scraped from two websites: Kaggle and Yahoo! Finance. Is has been processed and saved on the computer as a coma separated values (.csv) file.
 
 === Kaggle
